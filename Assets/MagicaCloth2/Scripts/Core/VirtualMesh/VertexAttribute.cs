@@ -14,13 +14,14 @@ namespace MagicaCloth2
     {
         /// <summary>
         /// ビットフラグ
+        /// 位标志
         /// </summary>
         public const byte Flag_Fixed = 0x01; // 固定
         public const byte Flag_Move = 0x02; // 移動
         //public const byte Flag_Ignore = 0x04; // 無視（シミュレーションの対象としない）:一旦オミット!
-        public const byte Flag_InvalidMotion = 0x08; // モーション制約無効
-        public const byte Flag_DisableCollision = 0x10; // コリジョン無効
-        public const byte Flag_Triangle = 0x80; // この頂点はトライアングルに属している
+        public const byte Flag_InvalidMotion = 0x08; // モーション制約無効 禁用运动约束
+        public const byte Flag_DisableCollision = 0x10; // コリジョン無効 碰撞无效
+        public const byte Flag_Triangle = 0x80; // この頂点はトライアングルに属している 这个顶点属于三角
 
         public static readonly VertexAttribute Invalid = new VertexAttribute();
         public static readonly VertexAttribute Fixed = new VertexAttribute(Flag_Fixed);
@@ -30,6 +31,7 @@ namespace MagicaCloth2
         //=========================================================================================
         /// <summary>
         /// 属性値（ビットフラグ）
+        /// 属性值（位标志）
         /// </summary>
         public byte Value;
 

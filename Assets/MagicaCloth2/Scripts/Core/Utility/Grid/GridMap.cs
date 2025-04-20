@@ -58,6 +58,7 @@ namespace MagicaCloth2
 
         /// <summary>
         /// 球範囲を走査するEnumeratorを返す
+        /// 返回用于扫描球体范围的Enumerator
         /// </summary>
         /// <param name="pos"></param>
         /// <param name="radius"></param>
@@ -65,6 +66,7 @@ namespace MagicaCloth2
         public static GridEnumerator GetArea(float3 pos, float radius, NativeParallelMultiHashMap<int3, T> gridMap, float gridSize)
         {
             // 検索グリッド範囲
+            // 搜索网格范围
             int3 minGrid = GetGrid(pos - radius, gridSize);
             int3 maxGrid = GetGrid(pos + radius, gridSize);
 
@@ -129,6 +131,7 @@ namespace MagicaCloth2
         //=========================================================================================
         /// <summary>
         /// 座標から３次元グリッド座標を割り出す
+        /// 从坐标中指定三维栅格坐标
         /// </summary>
         /// <param name="pos"></param>
         /// <param name="gridSize"></param>

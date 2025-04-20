@@ -1459,9 +1459,11 @@ namespace MagicaCloth2
                 float3 pos = localPositions[vindex];
 
                 // 属性フラグはすでに設定されている場合があるので追加書き込みにする
+                // 属性标志有时已经设定，所以追加写入
                 var attr = attributes[vindex];
 
                 // 範囲グリッド走査
+                // 范围网格扫描
                 float minDist = float.MaxValue;
                 //VertexAttribute minAttr = default;
                 VertexAttribute minAttr = VertexAttribute.Invalid;
@@ -1471,6 +1473,7 @@ namespace MagicaCloth2
                         continue;
 
                     // このグリッドを検索する
+                    // 搜索此网格
                     foreach (int tindex in gridMap.GetValuesForKey(grid))
                     {
                         // 距離判定
@@ -1491,7 +1494,7 @@ namespace MagicaCloth2
                 //if (minAttr.IsInvalid())
                 //    minAttr = VertexAttribute.Fixed; // InvalidはFixedに変換
                 //Debug.Log($"vindex:{vindex} minAttr:{minAttr.Value:X}");
-                attr.SetFlag(minAttr, true); // フラグ結合
+                attr.SetFlag(minAttr, true); // フラグ結合 标记连接
                 attributes[vindex] = attr;
             }
         }
