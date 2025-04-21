@@ -279,6 +279,7 @@ namespace MagicaCloth2
 
         /// <summary>
         /// 法線と接線から回転姿勢を求める
+        /// 根据法线和切线求出旋转姿势
         /// </summary>
         /// <param name="nor"></param>
         /// <param name="tan"></param>
@@ -299,6 +300,7 @@ namespace MagicaCloth2
 
         /// <summary>
         /// 回転姿勢を法線と接線に分解して返す
+        /// 将旋转姿态分解为法线和切线并返回
         /// </summary>
         /// <param name="rot"></param>
         /// <returns></returns>

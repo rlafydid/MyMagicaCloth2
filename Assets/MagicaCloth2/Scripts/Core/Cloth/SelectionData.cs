@@ -248,13 +248,14 @@ namespace MagicaCloth2
         //=========================================================================================
         /// <summary>
         /// 属性座標をグリッドマップに登録して返す
+        /// 在栅格地图中注册并返回属性坐标
         /// </summary>
         /// <param name="gridSize"></param>
         /// <param name="positions"></param>
         /// <param name="attributes"></param>
-        /// <param name="move">移動属性を含めるかどうか</param>
-        /// <param name="fix">固定属性を含めるかどうか</param>
-        /// <param name="invalid">無効属性を含めるかどうか</param>
+        /// <param name="move">移動属性を含めるかどうか 是否包含移动属性</param>
+        /// <param name="fix">固定属性を含めるかどうか 是否包含固定属性</param>
+        /// <param name="invalid">無効属性を含めるかどうか 是否包含无效属性</param>
         /// <returns></returns>
         public static GridMap<int> CreateGridMapRun(
             float gridSize,

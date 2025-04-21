@@ -95,6 +95,7 @@ namespace MagicaCloth2
             public bool MoveNext()
             {
                 // データが存在しなくとも走査する
+                // 即使数据不存在也扫描
                 if (isFirst)
                 {
                     isFirst = false;
@@ -145,6 +146,7 @@ namespace MagicaCloth2
 
         /// <summary>
         /// グリッドマップにデータを追加する
+        /// 向网格贴图添加数据
         /// </summary>
         /// <param name="grid"></param>
         /// <param name="data"></param>

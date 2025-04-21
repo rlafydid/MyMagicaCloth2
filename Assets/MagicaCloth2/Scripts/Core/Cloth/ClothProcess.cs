@@ -340,6 +340,7 @@ namespace MagicaCloth2
 
         /// <summary>
         /// 自動構築（コンポーネントのStart()で呼ばれる）
+        /// 自动生成（被称为组件的开始（））
         /// </summary>
         /// <returns></returns>
         internal bool AutoBuild()
@@ -563,7 +564,7 @@ namespace MagicaCloth2
                         else if (clothType == ClothType.BoneCloth || clothType == ClothType.BoneSpring)
                         {
                             // ■BoneCloth
-                            // import
+                            // import 主要是生成粒子关联关系
                             proxyMesh.ImportFrom(boneClothSetupData);
                             if (proxyMesh.IsError)
                             {

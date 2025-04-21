@@ -68,6 +68,7 @@ namespace MagicaCloth2
                 }
                 if (LineCount > 0)
                 {
+                    // 每个顶点所连接的顶点
                     var calcLineVertexToVertexJob = new Proxy_CalcVertexToVertexFromLineJob()
                     {
                         lineCount = LineCount,
@@ -78,11 +79,13 @@ namespace MagicaCloth2
                     calcLineVertexToVertexJob.Run();
                 }
 
-                // エッジをリスト化して格納する 列出并存储边
+                // エッジをリスト化して格納する
+                // 列出并存储边
                 edges = edgeSet.ToNativeArray(Allocator.Persistent);
                 //Debug.Log($"edges:{edges.Length}");
 
-                // 頂点接続頂点をリスト化して格納する 列出并存储顶点连接顶点
+                // 頂点接続頂点をリスト化して格納する
+                // 列出并存储顶点连接顶点
                 vertexDataBuilder.ToNativeArray(out vertexToVertexIndexArray, out vertexToVertexDataArray);
                 // vertexToVertexIndexArray 每个元素是开始索引 ~ 数量
                 // vertexToVertexDataArray 上面存的索引是针对这个的
@@ -107,10 +110,12 @@ namespace MagicaCloth2
                 convertInvalidJob.Run(VertexCount);
 #endif
 
-                // エッジごとの接続トライアングルを求める 求每个边的连接三角
+                // エッジごとの接続トライアングルを求める
+                // 求每个边的连接三角
                 if (TriangleCount > 0)
                 {
-                    // エッジごとの接続トライアングルを求める 求每个边的连接三角
+                    // エッジごとの接続トライアングルを求める
+                    // 求每个边的连接三角
                     edgeToTriangles = new NativeParallelMultiHashMap<int2, ushort>(TriangleCount * 2, Allocator.Persistent);
                     var calcEdgeToTriangleJob = new Proxy_CalcEdgeToTriangleJob()
                     {
@@ -145,7 +150,8 @@ namespace MagicaCloth2
                     };
                     calcTriangleTangentJob.Run(TriangleCount);
 
-                    // 頂点に接続するトライアングルセットを求める（最大７つ） 求与顶点连接的三角形组（最多7个）
+                    // 頂点に接続するトライアングルセットを求める（最大７つ）
+                    // 求与顶点连接的三角形组（最多7个）  :  key是顶点索引，Value是连接的三角形索引数组
                     var createVertexToTriangleJob = new Proxy_CreateVertexToTrianglesJob()
                     {
                         triangles = triangles.GetNativeArray(),
@@ -155,6 +161,7 @@ namespace MagicaCloth2
 
                     // トライアングルから頂点法線を計算するためのvertexToTrianglesを求める 从三角计算顶点法线的vertexToTriangles
                     // また頂点がトライアングルに属する場合はフラグを立てる 另外，如果顶点属于三角线，则标记
+                    //给attributes标记是三角形Flag, 2 设置一下vertexToTriangleg,添加flag?
                     var organizeVertexToTriangleJob = new Proxy_OrganizeVertexToTrianglsJob()
                     {
                         vertexToTriangles = vertexToTriangles,
@@ -164,7 +171,8 @@ namespace MagicaCloth2
                     };
                     organizeVertexToTriangleJob.Run(VertexCount);
 
-                    // トライアングル組み合わせから法線と接線を求める 从三角组合中求出法线和切线
+                    // トライアングル組み合わせから法線と接線を求める
+                    // 从三角组合中求出法线和切线
                     var calcVertexNormalTangentBindposeJob = new Proxy_CalcVertexNormalTangentFromTriangleJob()
                     {
                         triangleNormals = triNormals,
@@ -177,17 +185,20 @@ namespace MagicaCloth2
                 }
                 else
                 {
-                    // エッジごとの接続トライアングルは空にする 每个边的连接三角为空
+                    // エッジごとの接続トライアングルは空にする
+                    // 每个边的连接三角为空
                     edgeToTriangles = new NativeParallelMultiHashMap<int2, ushort>(1, Allocator.Persistent);
                 }
 
-                // シミュレーションに関係する頂点からAABBと固定頂点リストを作成する 从与模拟相关的顶点创建AABB和固定顶点列表
+                // シミュレーションに関係する頂点からAABBと固定頂点リストを作成する
+                // 从与模拟相关的顶点创建AABB和固定顶点列表
                 ProxyCreateFixedListAndAABB();
 
-                // ベースラインの作成 创建基线
+                // ベースラインの作成
+                // 创建基线
                 if (isBoneCloth)
                 {
-                    // BoneCloth
+                    // BoneCloth ：基线是 没有跟三角形连接的骨骼链（line模式或者部分没能跟三角形连接的粒子）
                     CreateTransformBaseLine();
                 }
                 else
@@ -196,10 +207,12 @@ namespace MagicaCloth2
                     CreateMeshBaseLine();
                 }
 
-                // 法線方向の調整 调整法线方向
+                // 法線方向の調整
+                // 调整法线方向
                 ProxyNormalAdjustment(sdata, normalAdjustmentTransformRecord);
 
                 // BoneClothではトランスフォーム書き戻し用の回転を求める 那么求变换回写用的旋转
+                // 在BoneCloth中求变换回写用的旋转
                 if (isBoneCloth)
                 {
                     var calcVertexToTransformJob = new Proxy_CalcVertexToTransformJob()
@@ -213,7 +226,8 @@ namespace MagicaCloth2
                     calcVertexToTransformJob.Run(VertexCount);
                 }
 
-                // 頂点のバインドポーズを求める 确定顶点绑定姿势
+                // 頂点のバインドポーズを求める
+                // 确定顶点绑定姿势
                 var calcVertexBindposeJob = new Proxy_CalcVertexBindPoseJob2()
                 {
                     localPositions = localPositions.GetNativeArray(),
@@ -224,7 +238,8 @@ namespace MagicaCloth2
                 };
                 calcVertexBindposeJob.Run(VertexCount);
 
-                // エッジ固有フラグを設定 设置特定边标志
+                // エッジ固有フラグを設定
+                // 设置特定边标志 （连接三角形只有一个的边设置为切口）
                 edgeFlags = new NativeArray<ExBitFlag8>(EdgeCount, Allocator.Persistent);
                 if (EdgeCount > 0)
                 {
@@ -237,16 +252,19 @@ namespace MagicaCloth2
                     createEdgeFlagJob.Run(EdgeCount);
                 }
 
-                // ベースラインの基本姿勢を求める 求基线的基本姿势
+                // ベースラインの基本姿勢を求める
+                // 求基线的基本姿势
                 CreateBaseLinePose();
 
-                // 頂点ごとのルートインデックスと深さを求める 求每个顶点的根索引和深度
+                // 頂点ごとのルートインデックスと深さを求める
+                // 求每个顶点的根索引和深度
                 CreateVertexRootAndDepth();
 
                 // AABB再計算
                 //JobUtility.CalcAABBRun(localPositions.GetNativeArray(), VertexCount, boundingBox);
 
-                // カスタムスキニング設定 自定义蒙皮设置
+                // カスタムスキニング設定
+                // 自定义蒙皮设置
                 if (sdata.customSkinningSetting.enable && sdata.IsBoneSpring() == false)
                 {
                     CreateCustomSkinning(sdata.customSkinningSetting, customSkinningBoneRecords);
@@ -322,7 +340,7 @@ namespace MagicaCloth2
             if (vcnt == 0)
                 return;
 
-            // 配列初期化（未使用でも領域確保）
+            // 配列初期化（未使用でも領域確保） 未使用也确保区域
             normalAdjustmentRotations = new NativeArray<quaternion>(vcnt, Allocator.Persistent);
             JobUtility.FillRun(normalAdjustmentRotations, vcnt, quaternion.identity);
 
@@ -331,6 +349,7 @@ namespace MagicaCloth2
                 return;
 
             // 中心からの放射
+            // 从中心放射
             if (mode == NormalAlignmentSettings.AlignmentMode.BoundingBoxCenter || mode == NormalAlignmentSettings.AlignmentMode.Transform)
             {
                 float3 center;
@@ -387,9 +406,11 @@ namespace MagicaCloth2
                 v = math.normalize(v);
 
                 // 現在の回転
+                // 当前旋转
                 var lrot = MathUtility.ToRotation(localNormals[vindex], localTangents[vindex]);
 
                 // 子がいる場合は子へのベクトルから算出
+                // 在有子的情况下，根据对子的矢量计算
                 var nrot = lrot;
                 int pindex = vertexParentIndices[vindex];
                 var pack = vertexChildIndexArray[vindex];
@@ -418,6 +439,7 @@ namespace MagicaCloth2
                     }
                 }
                 // 子がいなく親がいる場合は親からのベクトルから算出
+                // 没有子代有父代的情况下，根据来自父代的矢量计算
                 else if (pindex >= 0)
                 {
                     var ppos = localPositions[pindex];
@@ -436,13 +458,14 @@ namespace MagicaCloth2
                     }
                 }
 
-                // 補正用回転を算出し格納する
+                // 補正用回転を算出し格納する 计算并存储修正用旋转
                 normalAdjustmentRotations[vindex] = math.mul(math.inverse(lrot), nrot);
             }
         }
 
         /// <summary>
         /// シミュレーションに関係する頂点からAABBと固定頂点のリストを作成する
+        /// 从模拟相关顶点创建AABB和固定顶点列表
         /// </summary>
         void ProxyCreateFixedListAndAABB()
         {
@@ -511,6 +534,7 @@ namespace MagicaCloth2
                     var lpos = localPositions[i];
 
                     // 固定頂点の場合は接続がすべて固定ならば無効とする（シミュレーションに無関係）
+                    // 固定顶点时，如果连接全部固定则无效（与模拟无关）
                     if (attributes[i].IsMove() == false)
                     {
                         var pack = vertexToVertexIndexArray[i];
@@ -529,6 +553,7 @@ namespace MagicaCloth2
                             continue;
 
                         // 固定頂点リストに追加する
+                        // 添加到固定顶点列表
                         fixedList.Add((ushort)i);
 
                         lcenpos += lpos;
@@ -745,6 +770,7 @@ namespace MagicaCloth2
 
         /// <summary>
         /// 頂点ごとに接続するトライアングルを求める（最大７つ）
+        /// 求每个顶点连接的三角（最多7个）
         /// </summary>
         [BurstCompile]
         unsafe struct Proxy_CreateVertexToTrianglesJob : IJob
@@ -780,6 +806,8 @@ namespace MagicaCloth2
         /// <summary>
         /// 接続トライアングルから頂点法線接線を計算するために最適なトライアングル方向を計算して格納する
         /// またトライアングルに属する頂点にはフラグを立てる
+        /// 计算并存储最适合从连接三角计算顶点法线切线的三角方向
+        /// 在属于三角的顶点上加上标志
         /// </summary>
         [BurstCompile]
         struct Proxy_OrganizeVertexToTrianglsJob : IJobParallelFor
@@ -795,19 +823,23 @@ namespace MagicaCloth2
 
             public void Execute(int vindex)
             {
+                //索引是顶点索引，Value是这个顶点所连接的所有三角形索引数组
                 var tset = vertexToTriangles[vindex];
                 int tcnt = tset.Length;
                 if (tcnt == 0)
                     return;
 
                 // この頂点はトライアングルに属する
+                // 此顶点属于三角
                 var attr = attributes[vindex];
                 attr.SetFlag(VertexAttribute.Flag_Triangle, true);
                 attributes[vindex] = attr;
 
                 // まず普通に現在のトライアングル面法線から頂点法線を求めてみる
+                // 首先一般从现在的三角面法线求出顶点法线
                 float3 finalNormal = 0;
                 float3 finalTangent = 0;
+                //遍历该顶点所连接的三角形索引
                 for (int i = 0; i < tcnt; i++)
                 {
                     int tindex = (int)tset[i];
@@ -819,18 +851,23 @@ namespace MagicaCloth2
                 //    Debug.LogError($"vindex:{vindex} finalTangent:{finalTangent}");
 
                 // 普通に求めた法線が短い場合は最適な法線を算出する
+                // 通常求出的法线短的情况下，计算最合适的法线
                 if (math.length(finalNormal) < 0.5f)
                 {
                     // すべての接続トライアングルをループ
                     // ループの最初のトライアングルを基準としてその法線方向に他のトライアングルをあわせてみる
                     // 法線の合計の長さがもっとも長いものを採用する
+                    //循环所有连接三角
+                    //以循环的最初三角为基准，在其法线方向上尝试其他三角
+                    //采用法线合计长度最长的
                     float maxDist = -1;
                     finalNormal = 0;
 
                     for (int i = 0; i < tcnt; i++)
                     {
                         // このトライアングルを基準として計算する
-                        int tindex1 = (int)tset[i];
+                        // 以这个三角为基准计算
+                        int tindex1 = (int)tset[i]; //这是三角形索引
                         float3 n = 0;
                         float3 tn1 = triangleNormals[tindex1];
 
@@ -849,6 +886,8 @@ namespace MagicaCloth2
 
                         // 計算された法線の長さを判定
                         // 最も長いものを基準法線として採用する
+                        //确定计算法线的长度
+                        //采用最长的作为基准法线
                         float ndist = math.lengthsq(n);
                         if (ndist > maxDist)
                         {
@@ -860,21 +899,27 @@ namespace MagicaCloth2
                 else
                 {
                     // この法線を基準法線とする
+                    // 将此法线作为基准法线
                     finalNormal = math.normalize(finalNormal);
                 }
 
                 // 普通に求めた接線が短い場合は最適な接線を算出する
+                // 在通常求出的切线较短的情况下，计算最佳的切线
                 if (math.length(finalTangent) < 0.5f)
                 {
                     // すべての接続トライアングルをループ
                     // ループの最初のトライアングルを基準としてその接線方向に他のトライアングルをあわせてみる
                     // 接線の合計の長さがもっとも長いものを採用する
+                    //循环所有连接三角
+                    //以循环的最初三角为基准，试着在其切线方向上对准其他三角
+                    //采用切线总长度最长的
                     float maxDist = -1;
                     finalTangent = 0;
 
                     for (int i = 0; i < tcnt; i++)
                     {
                         // このトライアングルを基準として計算する
+                        // 以这个三角为基准计算
                         int tindex1 = (int)tset[i];
                         float3 n = 0;
                         float3 tt1 = triangleTangents[tindex1];
@@ -894,6 +939,8 @@ namespace MagicaCloth2
 
                         // 計算された接線の長さを判定
                         // 最も長いものを基準接線として採用する
+                        //确定计算切线的长度
+                        //采用最长的作为基准切线
                         float ndist = math.lengthsq(n);
                         if (ndist > maxDist)
                         {
@@ -905,11 +952,14 @@ namespace MagicaCloth2
                 else
                 {
                     // この接線を基準とする
+                    // 以此切线为基准
                     finalTangent = math.normalize(finalTangent);
                 }
 
                 // トライアングルを登録する
                 // 同時に法線と接線の加算方向をフラグとして追加する
+                //注册三角洲
+                //同时添加法线和切线的相加方向作为标志
                 for (int i = 0; i < tcnt; i++)
                 {
                     int tindex = (int)tset[i];
@@ -917,14 +967,14 @@ namespace MagicaCloth2
                     float3 tn = triangleNormals[tindex];
                     float3 tt = triangleTangents[tindex];
 
-                    // 反転フラグ
+                    // 反転フラグ 反转标志
                     int flipFlag = 0;
                     if (math.dot(finalNormal, tn) < 0.0f)
                         flipFlag |= 0x1;
                     if (math.dot(finalTangent, tt) < 0.0f)
                         flipFlag |= 0x2;
 
-                    // 12-20bitでuintにパックする
+                    // 12-20bitでuintにパックする 以12-20 bit包在uint中
                     tset[i] = DataUtility.Pack12_20(flipFlag, tindex);
                 }
 
@@ -946,13 +996,14 @@ namespace MagicaCloth2
                 }
                 */
 
-                // 結果格納
+                // 結果格納 结果存储
                 vertexToTriangles[vindex] = tset;
             }
         }
 
         /// <summary>
         /// 現在メッシュの頂点法線接線を接続トライアングル情報から更新する
+        /// 从连接三角信息更新当前网格的顶点法线切线
         /// </summary>
         [BurstCompile]
         struct Proxy_CalcVertexNormalTangentFromTriangleJob : IJobParallelFor
@@ -979,10 +1030,12 @@ namespace MagicaCloth2
                     for (int i = 0; i < tcnt; i++)
                     {
                         // 12-20bitのパックで格納されている
+                        // 以12-20bit的包存储
                         uint data = tset[i];
                         int flipFlag = DataUtility.Unpack12_20Hi(data);
                         int tindex = DataUtility.Unpack12_20Low(data);
 
+                        // flipFlag是是否翻转，根据dot的值
                         nor += triangleNormals[tindex] * ((flipFlag & 0x1) == 0 ? 1 : -1);
                         tan += triangleTangents[tindex] * ((flipFlag & 0x2) == 0 ? 1 : -1);
 
@@ -1004,7 +1057,7 @@ namespace MagicaCloth2
 
                     localNormals[vindex] = nor;
                     //localTangents[vindex] = tan;
-                    localTangents[vindex] = binor; // 従法線に変更(v2.1.7)
+                    localTangents[vindex] = binor; // 従法線に変更(v2.1.7) 更改为从法线（v2.1.7）
                 }
             }
         }
@@ -1029,12 +1082,15 @@ namespace MagicaCloth2
             public void Execute(int vindex)
             {
                 // トランスフォームのローカル回転
+                // 变换局部旋转
                 var trot = math.mul(invRot, transformRotations[vindex]);
 
                 // 頂点のローカル回転
+                // 局部旋转顶点
                 var vrot = MathUtility.ToRotation(localNormals[vindex], localTangents[vindex]);
 
                 // 頂点ローカル回転をトランスフォームローカル回転に復元する回転を求める
+                // 求将顶点局部旋转恢复为变换局部旋转的旋转
                 var toRot = math.mul(math.inverse(vrot), trot);
 
                 vertexToTransformRotations[vindex] = toRot;
@@ -1074,6 +1130,7 @@ namespace MagicaCloth2
 
         /// <summary>
         /// 頂点のバインドポーズを求める
+        /// 确定顶点绑定姿势
         /// </summary>
         [BurstCompile]
         struct Proxy_CalcVertexBindPoseJob2 : IJobParallelFor
@@ -1097,6 +1154,7 @@ namespace MagicaCloth2
                 var ltan = localTangents[vindex];
 
                 // マッピング用の頂点バインドポーズを求める
+                // 确定映射的顶点绑定姿势
                 quaternion rot = MathUtility.ToRotation(lnor, ltan);
                 vertexBindPosePositions[vindex] = -lpos;
                 vertexBindPoseRotations[vindex] = math.inverse(rot);
@@ -1146,6 +1204,8 @@ namespace MagicaCloth2
         /// <summary>
         /// ラインに接続する頂点セットを求める
         /// およびエッジセットを作成する
+        /// 确定连接到线的顶点集
+        /// 和创建边集
         /// </summary>
         [BurstCompile]
         struct Proxy_CalcVertexToVertexFromLineJob : IJob
@@ -1186,7 +1246,7 @@ namespace MagicaCloth2
             {
                 var flag = new ExBitFlag8();
 
-                // 切り口エッジか判定する
+                // 切り口エッジか判定する 判定是切口边缘
                 var edge = edges[eindex];
                 if (edgeToTriangles.ContainsKey(edge))
                 {
@@ -1395,7 +1455,8 @@ namespace MagicaCloth2
                 using var selectionAttributes = selectionData.GetAttributeNativeArray();
 
                 // グリッドサイズ計算 网格大小计算
-                // 検索半径（メッシュの平均接続距離とセレクションデータの最大接続距離の大きい方） 搜索半径（网格的平均连接距离和选择数据的最大连接距离大的一方）
+                // 検索半径（メッシュの平均接続距離とセレクションデータの最大接続距離の大きい方）
+                // 搜索半径（网格的平均连接距离和选择数据的最大连接距离大的一方）
                 float searchRadius = math.max(averageVertexDistance.Value, selectionData.maxConnectionDistance);
                 searchRadius = math.max(searchRadius, Define.System.MinimumGridSize);
                 float gridSize = searchRadius * 1.5f;
@@ -1404,7 +1465,8 @@ namespace MagicaCloth2
                 // セレクションデータをグリッドマップに格納する 将选择数据存储在栅格地图中
                 using var gridMap = SelectionData.CreateGridMapRun(gridSize, selectionPositions, selectionAttributes);
 
-                // メッシュ頂点ごとに最も近いセレクションデータに接続し頂点属性を決定する 连接到最接近每个网格顶点的选择数据以确定顶点属性
+                // メッシュ頂点ごとに最も近いセレクションデータに接続し頂点属性を決定する
+                // 连接到最接近每个网格顶点的选择数据以确定顶点属性
                 var applyJob = new Proxy_ApplySelectionJob()
                 {
                     gridSize = gridSize,
@@ -1418,7 +1480,8 @@ namespace MagicaCloth2
                 };
                 applyJob.Run(VertexCount);
 
-                // BoneClothの場合はTransformの書き込み方法をTransformFlagに設定する 在BoneCloth的情况下，将Transform的写入方法设定为TransformFlag BoneCloth的情况下，将Transform的写入方法设定为TransformFlag的在BoneCloth的情况下，将Transform的写入方法设定为TransformFlag
+                // BoneClothの場合はTransformの書き込み方法をTransformFlagに設定する
+                // 在BoneCloth的情况下，将Transform的写入方法设定为TransformFlag
                 if (isBoneCloth)
                 {
                     var transformFlagJob = new Proxy_BoneClothApplayTransformFlagJob()
@@ -1467,6 +1530,7 @@ namespace MagicaCloth2
                 float minDist = float.MaxValue;
                 //VertexAttribute minAttr = default;
                 VertexAttribute minAttr = VertexAttribute.Invalid;
+                //以pos为圆点，获取radius范围内的所有格子
                 foreach (int3 grid in GridMap<int>.GetArea(pos, radius, gridMap, gridSize))
                 {
                     if (gridMap.ContainsKey(grid) == false)
@@ -1477,6 +1541,7 @@ namespace MagicaCloth2
                     foreach (int tindex in gridMap.GetValuesForKey(grid))
                     {
                         // 距離判定
+                        // 距离判定
                         float3 tpos = selectionPositions[tindex];
                         float dist = math.distance(pos, tpos);
                         if (dist > radius)
@@ -1485,6 +1550,7 @@ namespace MagicaCloth2
                             continue;
 
                         // 近傍属性
+                        // 邻域属性
                         minDist = dist;
                         minAttr = selectionAttributes[tindex];
                     }
@@ -1514,12 +1580,13 @@ namespace MagicaCloth2
                 var flag = transformFlags[vindex];
 
                 // 書き込み方法
+                // 写入方法
                 if (attr.IsMove())
                     flag.SetFlag(TransformManager.Flag_LocalPosRotWrite, true);
                 else if (attr.IsFixed())
                     flag.SetFlag(TransformManager.Flag_WorldRotWrite, true);
 
-                // 復元
+                // 復元 復元
                 if (attr.IsInvalid() == false)
                     flag.SetFlag(TransformManager.Flag_Restore, true);
 
@@ -1847,6 +1914,8 @@ namespace MagicaCloth2
         /// <summary>
         /// [BoneCloth]ベースライン情報の作成
         /// BoneClothでは単純にTransformの親子構造がそのままベースラインとなる
+        /// 创建BoneCloth基线信息
+        /// 在BoneCloth中，Transform的父子结构单纯地成为基线
         /// </summary>
         void CreateTransformBaseLine()
         {
@@ -1855,6 +1924,7 @@ namespace MagicaCloth2
             using var dataBuilder = new MultiDataBuilder<ushort>(vcnt, vcnt * 2);
 
             // トランスフォーム情報から親子関係を構築する
+            // 从变换信息构建父子关系
             // parent
             var idToIndexDict = new Dictionary<int, int>(vcnt);
             var idArray = transformData.idArray.GetNativeArray();
@@ -1882,6 +1952,7 @@ namespace MagicaCloth2
             job.Run();
 
             // 親子関係からベースラインを構築する
+            // 从父子关系构建基线
             int rootCount = transformData.RootCount;
             Debug.Assert(rootCount > 0);
             var rootStack = new Stack<int>(vcnt);
@@ -1893,6 +1964,7 @@ namespace MagicaCloth2
             foreach (int id in transformData.rootIdList)
             {
                 // ルートからTransformを走査して最初の移動ポイントを持つ固定を起点とする
+                // 从根扫描变换，以具有第一个移动点的固定为起点
                 rootStack.Clear();
                 int rootIndex = idToIndexDict[id];
                 rootStack.Push(rootIndex);
@@ -1905,6 +1977,7 @@ namespace MagicaCloth2
                         continue;
 
                     // 子に移動が含まれるかチェック
+                    // 检查子代是否包含移动
                     bool hasMove = false;
                     foreach (var data in dataBuilder.Map.GetValuesForKey(index0))
                     {
@@ -1913,8 +1986,10 @@ namespace MagicaCloth2
                     }
 
                     // 子に移動が含まれない場合はさらに深く潜る
+                    //如果你的孩子不包含移动，你就钻得更深
                     if (hasMove == false)
                     {
+                        //Map的Key是父粒子索引，Value是这个父的子粒子索引列表
                         foreach (var data in dataBuilder.Map.GetValuesForKey(index0))
                         {
                             if (attributes[data].IsDontMove())
@@ -1924,6 +1999,7 @@ namespace MagicaCloth2
                     }
 
                     // 自身が固定で子に移動が含まれる場合はここをベースラインの起点として構築する
+                    // 在自身为固定且子代包含移动情况下，将这里作为基线的起点构筑
                     stack.Clear();
                     stack.Push(index0);
                     ushort start = (ushort)indices.Count;
@@ -1937,6 +2013,7 @@ namespace MagicaCloth2
                         count++;
 
                         // この頂点がラインに属している場合はフラグを立てる
+                        // 如果此顶点属于线，则标记
                         if (attributes[index].IsSet(VertexAttribute.Flag_Triangle) == false)
                         {
                             lineflag.SetFlag(BaseLineFlag_IncludeLine, true);
@@ -1948,6 +2025,7 @@ namespace MagicaCloth2
                             foreach (var data in dataBuilder.Map.GetValuesForKey(index))
                             {
                                 // 移動属性以外は無視する
+                                // 忽略移动属性以外的属性
                                 if (attributes[data].IsDontMove())
                                     continue;
 
@@ -1956,7 +2034,7 @@ namespace MagicaCloth2
                         }
                     }
 
-                    // 格納
+                    // 格納 存储
                     lineFlags.Add(lineflag);
                     startIndices.Add(start);
                     dataCounts.Add(count);
@@ -1972,6 +2050,7 @@ namespace MagicaCloth2
 
         /// <summary>
         /// (Bone)ベースライン上の頂点ごとの子頂点リストを求める
+        /// 求基线上每个顶点的子顶点列表
         /// </summary>
         [BurstCompile]
         struct BaseLine_Bone_CreateBoneChildInfoJob : IJob
@@ -1986,6 +2065,7 @@ namespace MagicaCloth2
             public void Execute()
             {
                 // 頂点ごとの子頂点を調べるて格納する
+                // 查找并存储每个顶点的子顶点
                 for (int i = 0; i < vcnt; i++)
                 {
                     int pindex = parentIndices[i];
@@ -1999,7 +2079,8 @@ namespace MagicaCloth2
 
         //-----------------------------------------------------------------------------------------
         /// <summary>
-        /// (Mesh/Bone)ベースラインの基準姿勢を求める 求基线的基准姿势
+        /// (Mesh/Bone)ベースラインの基準姿勢を求める
+        /// 求基线的基准姿势
         /// </summary>
         void CreateBaseLinePose()
         {

@@ -13,12 +13,12 @@ namespace MagicaCloth2
 {
     public class TransformManager : IManager, IValid
     {
-        // フラグ
+        // フラグ 标记
         internal const byte Flag_Read = 0x01;
-        internal const byte Flag_WorldRotWrite = 0x02; // ワールド回転のみ書き込み
-        internal const byte Flag_LocalPosRotWrite = 0x04; // ローカル座標・回転書き込み
-        internal const byte Flag_Restore = 0x08; // 復元する
-        internal const byte Flag_Enable = 0x10; // 有効状態
+        internal const byte Flag_WorldRotWrite = 0x02; // ワールド回転のみ書き込み 仅写入世界旋转
+        internal const byte Flag_LocalPosRotWrite = 0x04; // ローカル座標・回転書き込み 局部坐标、旋转写入
+        internal const byte Flag_Restore = 0x08; // 復元する 恢复
+        internal const byte Flag_Enable = 0x10; // 有効状態 有效状态
         internal ExNativeArray<ExBitFlag8> flagArray;
 
         /// <summary>

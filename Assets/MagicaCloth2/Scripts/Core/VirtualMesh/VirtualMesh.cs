@@ -216,6 +216,7 @@ namespace MagicaCloth2
 
         /// <summary>
         /// エッジ固有フラグ
+        /// 特定边标志
         /// </summary>
         public const byte EdgeFlag_Cut = 0x1; // 切り口エッジ
         public NativeArray<ExBitFlag8> edgeFlags;
@@ -229,6 +230,8 @@ namespace MagicaCloth2
         /// <summary>
         /// 頂点ごとのバインドポーズ
         /// 頂点バインドにはスケール値は不要
+        /// 每个顶点的绑定姿势
+        /// 顶点绑定不需要缩放值
         /// </summary>
         public NativeArray<float3> vertexBindPosePositions;
         public NativeArray<quaternion> vertexBindPoseRotations;
