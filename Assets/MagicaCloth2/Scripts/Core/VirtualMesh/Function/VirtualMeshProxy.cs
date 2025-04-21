@@ -2164,18 +2164,21 @@ namespace MagicaCloth2
 
         /// <summary>
         /// 頂点ごとのルートインデックスと深さを求める
+        /// 求每个顶点的根索引和深度
         /// </summary>
         void CreateVertexRootAndDepth()
         {
             // ベースラインが存在しなくとも配列は用意する
+            // 即使基线不存在也准备排列
             int vcnt = VertexCount;
             vertexDepths = new NativeArray<float>(vcnt, Allocator.Persistent);
             vertexRootIndices = new NativeArray<int>(vcnt, Allocator.Persistent);
 
-            // 作業バッファ
+            // 作業バッファ 工作缓冲器
             using var rootLengthArray = new NativeArray<float>(vcnt, Allocator.Persistent);
 
             // 頂点ごとのルートインデックスと深さを計算する
+            // 计算每个顶点的根索引和深度
             var job = new BaseLine_CalcMaxBaseLineLengthJob()
             {
                 vcnt = vcnt,
@@ -2218,6 +2221,8 @@ namespace MagicaCloth2
 
                 // 各移動頂点のルートまでの距離を計算する
                 // およびルート頂点を記録する
+                // 计算每个移动顶点到根的距离
+                // 记录根顶点
                 for (int i = 0; i < vcnt; i++)
                 {
                     int rootIndex = -1;
@@ -2236,6 +2241,7 @@ namespace MagicaCloth2
                             rootIndex = pindex;
 
                             // 親が固定ならばここがルートとなり終了
+                            // 如果父母是固定的，这里就是路线，结束
                             if (attribues[pindex].IsMove() == false)
                                 break;
 
@@ -2253,6 +2259,7 @@ namespace MagicaCloth2
                 }
 
                 // 深さを割り出す
+                // 算出深度
                 if (maxLen > Define.System.Epsilon)
                 {
                     for (int i = 0; i < vcnt; i++)
