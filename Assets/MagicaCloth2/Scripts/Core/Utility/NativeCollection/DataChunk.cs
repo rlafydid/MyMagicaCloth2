@@ -6,16 +6,19 @@ namespace MagicaCloth2
 {
     /// <summary>
     /// 配列の断片を管理する
+    /// 管理数组片段
     /// </summary>
     public struct DataChunk
     {
         /// <summary>
         /// 開始インデックス
+        /// 起始索引
         /// </summary>
         public int startIndex;
 
         /// <summary>
         /// データ数
+        /// 数据计数
         /// </summary>
         public int dataLength;
 

@@ -779,12 +779,15 @@ namespace MagicaCloth2
                 enableTeamSet.Remove(teamId);
 
             // コライダーの有効状態（内部でコライダートランスフォームの有効状態も設定）
+            // 协作者的有效状态（内部还设置了协作者转体的有效状态）
             MagicaManager.Collider.EnableTeamCollider(teamId);
 
             // センタートランスフォーム
+            // 中心变换
             MagicaManager.Bone.EnableTransform(team.centerTransformIndex, sw);
 
             // プロキシメッシュ
+            // 代理网格
             MagicaManager.Bone.EnableTransform(team.proxyTransformChunk, sw);
         }
 
@@ -1007,6 +1010,7 @@ namespace MagicaCloth2
                 tdata.flag.SetBits(Flag_Suspend, suspend);
 
                 // 有効状態と同期まちフラグの２つで実行判定
+                // 通过有效状态和同步等待标志这两个执行判定
                 if (tdata.flag.IsSet(Flag_Enable) == false || tdata.flag.IsSet(Flag_Suspend))
                     continue;
 
@@ -1014,18 +1018,22 @@ namespace MagicaCloth2
                 bool selfCollisionUpdate = false;
 
                 // パラメータ変更反映
+                // 参数更改反映
                 if (cprocess.IsEnable)
                 {
                     if (cprocess.IsState(ClothProcess.State_ParameterDirty))
                     {
                         //Develop.DebugLog($"Update Parameters {teamId}");
                         // コライダー更新(内部でteamData更新)
+                        // 协作器更新（内部teamData更新）
                         MagicaManager.Collider.UpdateColliders(cprocess);
 
                         // カリング用アニメーターとレンダラー更新
+                        // 标记用动画制作者和渲染器更新
                         cprocess.UpdateCullingAnimatorAndRenderers();
 
                         // パラメータ変更
+                        // 参数更改
                         cprocess.SyncParameters();
                         parameterArray[teamId] = cprocess.parameters;
                         tdata.updateMode = cloth.SerializeData.updateMode;
@@ -1033,6 +1041,7 @@ namespace MagicaCloth2
                         tdata.flag.SetBits(Flag_Spring, cprocess.clothType == ClothProcess.ClothType.BoneSpring && cprocess.parameters.springConstraint.springPower > 0.0f); // Spring利用フラグ
 
                         // セルフコリジョン更新
+                        // 自碰撞更新
                         selfCollisionUpdate = true;
 
                         cprocess.SetState(ClothProcess.State_ParameterDirty, false);
@@ -1057,11 +1066,14 @@ namespace MagicaCloth2
 
                 // チーム同期
                 // 同期チェーンをたどり先端のチームを参照する
+                // 团队同步
+                // 跟随同步链，参照前端的队伍
                 int oldSyncTeamId = tdata.syncTeamId;
                 var syncCloth = cloth.SyncCloth;
                 if (syncCloth != null)
                 {
                     // デッドロック対策
+                    // 死锁对策
                     var c = syncCloth;
                     while (c)
                     {
@@ -1116,6 +1128,7 @@ namespace MagicaCloth2
                 }
 
                 // 時間の同期
+                // 时间同步
                 if (syncCloth && tdata.syncTeamId > 0)
                 {
                     ref var syncTeamData = ref GetTeamDataRef(syncCloth.Process.TeamId);
@@ -1139,6 +1152,8 @@ namespace MagicaCloth2
 
                     // パラメータ同期
                     // 同期中は一部のパラメータを連動させる
+                    // 参数同步
+                    // 同步中使一部分参数联动
                     ref var clothParam = ref GetParametersRef(teamId);
                     clothParam.inertiaConstraint.anchorInertia = syncCloth.SerializeData.inertiaConstraint.anchorInertia;
                     clothParam.inertiaConstraint.worldInertia = syncCloth.SerializeData.inertiaConstraint.worldInertia;
@@ -1150,10 +1165,11 @@ namespace MagicaCloth2
                     clothParam.inertiaConstraint.teleportRotation = syncCloth.SerializeData.inertiaConstraint.teleportRotation;
 
                     // 同期先のセンタートランスフォームインデックスを記録
+                    // 记录目标中心变换索引
                     tdata.syncCenterTransformIndex = syncTeamData.centerTransformIndex;
                 }
 
-                // アンカー
+                // アンカー 锚定
                 var anchorTransform = syncCloth && tdata.syncTeamId > 0 ? syncCloth.SerializeData.inertiaConstraint.anchor : cloth.SerializeData.inertiaConstraint.anchor;
                 int anchorTransformId = anchorTransform != null ? anchorTransform.GetInstanceID() : 0;
                 tdata.flag.SetBits(Flag_Anchor, anchorTransformId != 0);
@@ -1175,7 +1191,7 @@ namespace MagicaCloth2
                     MagicaManager.Simulation.selfCollisionConstraint.UpdateTeam(teamId);
                 }
 
-                // 一部の処理は後処理にする
+                // 一部の処理は後処理にする 有些处理后处理
                 if (cloth.SerializeData.updateMode == ClothUpdateMode.AnimatorLinkage || syncCloth)
                 {
                     workPostProcessList.Add(cprocess);
@@ -1184,12 +1200,14 @@ namespace MagicaCloth2
 
             // チーム更新（後処理）
             // 同期が確定してから実行しなければならないもの
+            // 团队更新（后处理）
+            // 确认同步后必须执行的内容
             foreach (var cprocess in workPostProcessList)
             {
                 int teamId = cprocess.TeamId;
                 ref var tdata = ref GetTeamDataRef(teamId);
 
-                // 更新モード
+                // 更新モード 更新模式
                 tdata.updateMode = cprocess.SyncCloth ? cprocess.SyncCloth.Process.GetClothUpdateMode() : cprocess.GetClothUpdateMode();
             }
             workPostProcessList.Clear();
@@ -1206,6 +1224,7 @@ namespace MagicaCloth2
                 //Debug.Log($"DeltaTime:{deltaTime}, FixedDeltaTime:{fixedDeltaTime}, simulationDeltaTime:{MagicaManager.Time.SimulationDeltaTime}");
 
                 // このJobは即時実行させる
+                // 立即运行此作业
                 var job = new AlwaysTeamUpdateJob()
                 {
                     teamCount = TeamCount,
@@ -1260,6 +1279,7 @@ namespace MagicaCloth2
                         continue;
 
                     // 時間リセット
+                    // 时间复位
                     if (tdata.flag.IsSet(Flag_TimeReset))
                     {
                         tdata.time = 0;
@@ -1277,6 +1297,7 @@ namespace MagicaCloth2
                     float deltaTime = frameDeltaTime;
 
                     // タイムスケール
+                    // 时间刻度
                     float timeScale = tdata.timeScale * (tdata.IsUnscaled ? 1.0f : globalTimeScale);
                     timeScale = tdata.flag.IsSet(Flag_Suspend) ? 0.0f : timeScale;
                     tdata.nowTimeScale = timeScale; // 最終計算用タイムスケール
@@ -1289,17 +1310,18 @@ namespace MagicaCloth2
                     //Debug.Log($"[{i}] time:{time}, addTime:{addTime}, timeScale:{timeScale}, suspend:{tdata.flag.IsSet(Flag_Suspend)}");
                     float interval = time - tdata.nowUpdateTime;
 
-                    // 今回の予定更新回数
+                    // 今回の予定更新回数 这次的预定更新次数
                     int updateCount = (int)(interval / simulationDeltaTime);
 
-                    // 今回の更新回数（最大更新回数まで）
+                    // 今回の更新回数（最大更新回数まで）本次更新次数（最多更新次数）
                     tdata.updateCount = math.min(updateCount, maxSimmulationCountPerFrame);
 
-                    // 今回のスキップ回数（最大更新回数超過分）
+                    // 今回のスキップ回数（最大更新回数超過分） 此次跳过次数（超过最大更新次数
                     tdata.skipCount = updateCount - tdata.updateCount;
                     if (tdata.skipCount > 0)
                     {
                         // スキップ発生時はスキップ時間を無かったものとする
+                        // 发生跳过时没有跳过时间
                         time = time - simulationDeltaTime * tdata.skipCount;
                     }
 
@@ -1310,19 +1332,27 @@ namespace MagicaCloth2
                         // その結果addTime=0でもintervalが一回分となり処理がまわってしまう
                         // こうなると時間補間関連で0除算が発生して数値が壊れる
                         // 誤差を修正する
+                        // 出现SimulationDeltaTime加法误差！
+                        // 每个步骤的nowUpdateTime+=tdata。模拟延迟累积误差
+                        // 其结果，即使addTime=0，interval也变为一次处理
+                        // 这样一来，由于时间插值相关而产生0除法，数值损坏
+                        // 修正误差
                         tdata.updateCount = 0;
                         tdata.skipCount = 0;
                         tdata.nowUpdateTime = time - simulationDeltaTime + 0.0001f;
                     }
 
                     // 時間まわり更新
+                    // 按时间更新
                     if (tdata.updateCount > 0)
                     {
                         // 更新時のフレーム開始時間
+                        // 更新时的帧开始时间
                         tdata.frameOldTime = tdata.frameUpdateTime;
                         tdata.frameUpdateTime = time;
 
                         // 前回の更新時間
+                        // 上次更新时间
                         tdata.oldUpdateTime = tdata.nowUpdateTime;
 
                         //Debug.Log($"TeamUpdate!:{i}");
@@ -1331,11 +1361,13 @@ namespace MagicaCloth2
                     tdata.time = time;
 
                     // シミュレーション実行フラグ
+                    // 模拟执行标志
                     tdata.flag.SetBits(Flag_Running, tdata.updateCount > 0);
 
                     teamDataArray[teamId] = tdata;
 
                     // 全体の最大実行回数
+                    // 最大总体运行次数
                     maxCount = math.max(maxCount, tdata.updateCount);
 
                     //Debug.Log($"[{teamId}] updateCount:{tdata.updateCount}, skipCount:{tdata.skipCount}, addtime:{addTime}, t.time:{tdata.time}, t.oldtime:{tdata.oldTime}, timeScale:{tdata.timeScale}");

@@ -567,8 +567,8 @@ namespace MagicaCloth2
                 cdata.centerTransformIndex = proxyMesh.centerTransformIndex;
                 constraintData.centerData = cdata;
 
-                // 固定点リストはすでにproxyMeshのcenterFixedListに格納されている 固定点列表已存储在proxyMesh的centerFixedList中
-                // 固定点列表已存储在proxyMesh的centerFixedList中 固定点列表已保存在proxyMesh的centerFixedList中
+                // 固定点リストはすでにproxyMeshのcenterFixedListに格納されている
+                // 固定点列表已存储在proxyMesh的centerFixedList中
                 float3 nor = 0;
                 float3 tan = 0;
                 int ccnt = proxyMesh.CenterFixedPointCount;

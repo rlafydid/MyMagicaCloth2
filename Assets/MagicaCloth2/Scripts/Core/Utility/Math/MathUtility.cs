@@ -884,6 +884,7 @@ namespace MagicaCloth2
 
         /// <summary>
         /// ２つのトライアングルと共通するエッジから残りの２つ頂点（対角点）を返す
+        /// 从与两个三角共同的边返回剩余的两个顶点（对角点）
         /// </summary>
         /// <param name="tri1"></param>
         /// <param name="tri2"></param>
@@ -982,6 +983,7 @@ namespace MagicaCloth2
 
         /// <summary>
         /// トライアングルについて指定エッジ以外の頂点インデックスを返す
+        /// 对于三角返回指定边以外的顶点索引
         /// </summary>
         /// <param name="tri"></param>
         /// <param name="edge"></param>

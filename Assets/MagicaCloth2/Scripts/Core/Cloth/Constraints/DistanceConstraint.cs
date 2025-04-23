@@ -79,6 +79,7 @@ namespace MagicaCloth2
         //=========================================================================================
         /// <summary>
         /// 接続タイプ数
+        /// 连接类型数
         /// </summary>
         public const int TypeCount = 2;
 
@@ -90,9 +91,9 @@ namespace MagicaCloth2
         {
             public ResultCode result;
 
-            public uint[] indexArray;
-            public ushort[] dataArray;
-            public float[] distanceArray;
+            public uint[] indexArray; //每个元素是 数量和dataArray起始index， dataArray和distanceArray一样，
+            public ushort[] dataArray;  //
+            public float[] distanceArray; //存储每个粒子之前的距离, 水平连接的距离是负的
 
             public bool IsValid()
             {
@@ -150,6 +151,7 @@ namespace MagicaCloth2
         //=========================================================================================
         /// <summary>
         /// 制約データの作成
+        /// 创建约束数据
         /// </summary>
         /// <param name="cbase"></param>
         public static ConstraintData CreateData(VirtualMesh proxyMesh, in ClothParameters parameters)
@@ -162,7 +164,8 @@ namespace MagicaCloth2
             {
                 int vcnt = proxyMesh.VertexCount;
 
-                // 頂点の接続頂点配列をMultiHashMapに変換する 将顶点连接顶点阵列转换为多个HashMap
+                // 頂点の接続頂点配列をMultiHashMapに変換する
+                // 将顶点连接顶点阵列转换为多个HashMap
                 vvMap = JobUtility.ToNativeMultiHashMap(proxyMesh.vertexToVertexIndexArray, proxyMesh.vertexToVertexDataArray);
 
                 var connectSet = new HashSet<uint>();
@@ -179,6 +182,7 @@ namespace MagicaCloth2
                     var attr = proxyMesh.attributes[i];
                     int pindex = proxyMesh.vertexParentIndices[i];
 
+                    // 应该是遍历连接的所有粒子
                     foreach (var data in vvMap.GetValuesForKey(i))
                     {
                         int tindex = data;
@@ -212,7 +216,8 @@ namespace MagicaCloth2
                 }
 
 #if true
-                // shear接続（横接続として登録） shear连接（注册为横向连接）
+                // shear接続（横接続として登録）
+                // shear连接（注册为横向连接）
                 if (proxyMesh.edgeToTriangles.IsCreated)
                 {
                     int ecnt = proxyMesh.EdgeCount;
@@ -237,6 +242,7 @@ namespace MagicaCloth2
                         var v1 = math.normalize(p1 - p2);
                         var cen = (p1 + p2) * 0.5f;
 
+                        //遍历线连接三角形
                         for (int i = 0; i < tcnt - 1; i++)
                         {
                             int3 tri1 = proxyMesh.triangles[tset[i]];
@@ -252,23 +258,27 @@ namespace MagicaCloth2
                                 var attr4 = proxyMesh.attributes[e4];
                                 var n2 = MathUtility.TriangleNormal(p1, p2, p4);
 
-                                // 両方とも固定ならば無効 如果两者都固定则无效
+                                // 両方とも固定ならば無効
+                                // 如果两者都固定则无效
                                 if (attr3.IsMove() == false && attr4.IsMove() == false)
                                     continue;
 
-                                // (1)トライアングルの内角がほぼ水平かチェック 检查三角的内角是否大致水平
+                                // (1)トライアングルの内角がほぼ水平かチェック
+                                // 检查三角的内角是否大致水平
                                 // 20度:0.9396926f
                                 float dot = math.abs(math.dot(n1, n2));
                                 if (dot < 0.9396926f)
                                     continue;
 
-                                // (2)トライアングルペアの２つの対角線の長さが一定以内なら正方形と判定する 如果三角对的两条对角线的长度在一定范围内，则判定为正方形
+                                // (2)トライアングルペアの２つの対角線の長さが一定以内なら正方形と判定する
+                                // 如果三角对的两条对角线的长度在一定范围内，则判定为正方形
                                 float edgeLength2 = math.length(p3 - p4);
                                 float ratio = math.abs(edgeLength2 / edgeLength1 - 1.0f);
                                 if (ratio <= 0.3f)
                                 {
                                     // 正方形
-                                    // 対角線(p3-p4)をShearとして接続する 将对角线（p3-p4）连接为Shear
+                                    // 対角線(p3-p4)をShearとして接続する
+                                    // 将对角线（p3-p4）连接为Shear
                                     uint pack = DataUtility.Pack32Sort(e3, e4);
                                     if (connectSet.Contains(pack) == false)
                                     {
@@ -282,11 +292,13 @@ namespace MagicaCloth2
                     }
                 }
 #endif
-                // 制約データ登録 约束数据注册
-                (var dataArryaV, var indexArrayV) = verticalConnection.ToArray();
-                (var dataArryaH, var indexArrayH) = horizontalConnection.ToArray();
+                // 制約データ登録
+                // 约束数据注册
+                (var dataArryaV, var indexArrayV) = verticalConnection.ToArray(); //该粒子所连接的粒子中，筛选垂直连接关系
+                (var dataArryaH, var indexArrayH) = horizontalConnection.ToArray(); // 该粒子所连接的粒子中，筛选水平连接关系
 
-                // すべて無効属性などデータがnullの場合もある 也有全部无效属性等数据为空的情况
+                // すべて無効属性などデータがnullの場合もある
+                // 也有全部无效属性等数据为空的情况
                 int total = (dataArryaV?.Length ?? 0) + (dataArryaH?.Length ?? 0);
                 if (total > 0)
                 {

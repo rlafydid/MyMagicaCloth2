@@ -65,6 +65,8 @@ namespace MagicaCloth2
         /// <summary>
         /// 内部HashMapのデータをT型配列と要素ごとのスタートインデックスとカウンタ配列の２つに分離して返す
         /// 出力はT型のデータ配列と、要素ごとのスタートインデックス(20bit)とカウンタ(12bit)を１つのuintにパックした配列となる
+        /// 将内部HashMap的数据分离为T型数组、每个元素的开始索引和计数器数组两个来返回
+        /// 输出为将T型数据排列、每个要素的开始索引（20bit）和计数器（12bit）封装在一个uint中的排列
         /// </summary>
         /// <returns></returns>
         public (T[], uint[]) ToArray()

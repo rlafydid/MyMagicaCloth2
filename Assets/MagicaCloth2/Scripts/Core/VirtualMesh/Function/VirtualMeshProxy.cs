@@ -2102,6 +2102,7 @@ namespace MagicaCloth2
 
         /// <summary>
         /// ベースラインの基準姿勢を求める
+        /// 求基线的基准姿势
         /// </summary>
         [BurstCompile]
         struct BaseLine_CalcLocalPositionRotationJob : IJobParallelFor

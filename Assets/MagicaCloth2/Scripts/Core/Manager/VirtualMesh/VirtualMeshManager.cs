@@ -391,7 +391,8 @@ namespace MagicaCloth2
 
         //=========================================================================================
         /// <summary>
-        /// プロキシメッシュをマネージャに登録する 在管理器中注册代理网格
+        /// プロキシメッシュをマネージャに登録する
+        /// 在管理器中注册代理网格
         /// </summary>
         public void RegisterProxyMesh(int teamId, VirtualMeshContainer proxyMeshContainer)
         {

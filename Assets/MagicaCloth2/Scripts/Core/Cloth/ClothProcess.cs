@@ -373,6 +373,7 @@ namespace MagicaCloth2
 
         /// <summary>
         /// 実行時構築タスク
+        /// 运行时生成任务
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
@@ -391,7 +392,8 @@ namespace MagicaCloth2
 
             try
             {
-                // ■メインスレッド 主线程
+                // ■メインスレッド
+                // 主线程
                 var sdata = cloth.SerializeData;
                 var sdata2 = cloth.GetSerializeData2();
 
@@ -450,19 +452,22 @@ namespace MagicaCloth2
                 // ■スレッド 线程
                 await Task.Run(() =>
                 {
-                    // 作業用メッシュ 工作网格
+                    // 作業用メッシュ
+                    // 工作网格
                     VirtualMesh renderMesh = null;
 
                     try
                     {
-                        // プロキシメッシュ作成 创建代理网格
+                        // プロキシメッシュ作成
+                        // 创建代理网格
                         ct.ThrowIfCancellationRequested();
                         proxyMesh = new VirtualMesh("Proxy");
                         proxyMesh.result.SetProcess();
                         List<int> copyRenderHandleList = null;
                         if (clothType == ClothType.MeshCloth)
                         {
-                            // MeshClothではクロストランスフォームを追加しておく 添加交叉变换
+                            // MeshClothではクロストランスフォームを追加しておく
+                            // 添加交叉变换
                             proxyMesh.SetTransform(clothTransformRecord);
 
                             lock (lockObject)
@@ -545,13 +550,15 @@ namespace MagicaCloth2
                                 }
                                 ct.ThrowIfCancellationRequested();
 
-                                // レンダーメッシュの作成完了 完成渲染网格
+                                // レンダーメッシュの作成完了
+                                // 完成渲染网格
                                 renderMesh.result.SetSuccess();
 
                                 // merge --------------------------------------------------
                                 proxyMesh.AddMesh(renderMesh);
 
-                                // レンダーメッシュ情報を作成 创建渲染信息
+                                // レンダーメッシュ情報を作成
+                                // 创建渲染信息
                                 var info = new RenderMeshInfo();
                                 //info.mixHash = mixHash;
                                 info.renderHandle = renderHandle;
@@ -573,16 +580,19 @@ namespace MagicaCloth2
                             }
                             Develop.DebugLog($"(IMPORT) {proxyMesh}");
 
-                            // セレクションデータが存在しない場合は簡易作成する 不存在选择数据的情况下简易制作
+                            // セレクションデータが存在しない場合は簡易作成する
+                            // 不存在选择数据的情况下简易制作
                             if (isValidSelection == false)
                             {
                                 selectionData = new SelectionData(proxyMesh, float4x4.identity);
                                 if (selectionData.Count > 0)
                                 {
-                                    // まずすべて移動設定 首先全部移动设定
+                                    // まずすべて移動設定
+                                    // 首先全部移动设定
                                     selectionData.Fill(VertexAttribute.Move);
 
-                                    // 次にルートのみ固定 然后仅固定根
+                                    // 次にルートのみ固定
+                                    // 然后仅固定根
                                     foreach (int id in boneClothSetupData.rootTransformIdList)
                                     {
                                         int rootIndex = boneClothSetupData.GetTransformIndexFromId(id);
@@ -592,7 +602,8 @@ namespace MagicaCloth2
                                 }
                             }
 
-                            // Transformと属性辞書がある場合はそれに従って属性を書き換える 和属性词典的情况下按照它改写属性
+                            // Transformと属性辞書がある場合はそれに従って属性を書き換える
+                            // 和属性词典的情况下按照它改写属性
                             if (boneAttributeDict != null)
                             {
                                 foreach (var kv in boneAttributeDict)
@@ -625,7 +636,8 @@ namespace MagicaCloth2
                         }
                         if (proxyMesh.joinIndices.IsCreated == false)
                         {
-                            // 元の頂点から結合頂点へのインデックスを初期化 初始化原始顶点到连接顶点的索引
+                            // 元の頂点から結合頂点へのインデックスを初期化
+                            // 初始化原始顶点到连接顶点的索引
                             ct.ThrowIfCancellationRequested();
                             proxyMesh.joinIndices = new Unity.Collections.NativeArray<int>(proxyMesh.VertexCount, Unity.Collections.Allocator.Persistent);
                             JobUtility.SerialNumberRun(proxyMesh.joinIndices, proxyMesh.VertexCount); // 連番をつける 连号
@@ -646,7 +658,8 @@ namespace MagicaCloth2
                         // attribute
                         if (isValidSelection)
                         {
-                            // セレクションデータから頂点属性を付与する 从选择数据添加顶点属性
+                            // セレクションデータから頂点属性を付与する
+                            // 从选择数据添加顶点属性
                             proxyMesh.ApplySelectionAttribute(selectionData);
                             if (proxyMesh.IsError)
                             {
@@ -732,13 +745,15 @@ namespace MagicaCloth2
                     }
                     finally
                     {
-                        // この時点で作業用renderMeshが存在する場合は中断されているので開放する 此时如果存在作业用render网格，则由于中断而开放
+                        // この時点で作業用renderMeshが存在する場合は中断されているので開放する
+                        // 此时如果存在作业用render网格，则由于中断而开放
                         renderMesh?.Dispose();
                     }
                 }, ct);
 
                 // ■メインスレッド 主线程
-                // 同期対象がいる場合は相手の初期化完了を待つ 有同步对象时等待对方初始化完成
+                // 同期対象がいる場合は相手の初期化完了を待つ
+                // 有同步对象时等待对方初始化完成
                 ct.ThrowIfCancellationRequested();
                 if (cloth == null)
                     throw new OperationCanceledException(); // キャンセル扱いにする 取消处理
@@ -782,6 +797,7 @@ namespace MagicaCloth2
                 await Task.Run(() =>
                 {
                     // ■クロスデータの作成
+                    // 创建交叉数据
                     try
                     {
                         // 距離制約(Distance)
@@ -892,6 +908,7 @@ namespace MagicaCloth2
                     }
 
                     // レンダラー情報を登録
+                    // 注册渲染器信息
                     foreach (var info in renderMeshInfos)
                     {
                         renderMeshInfoList.Add(info);
@@ -929,6 +946,7 @@ namespace MagicaCloth2
             finally
             {
                 // この時点でデータが存在する場合は失敗しているので破棄する
+                // 如果此时数据存在，则由于失败而废弃
                 foreach (var info in renderMeshInfos)
                 {
                     info?.renderMeshContainer?.Dispose();
@@ -936,6 +954,7 @@ namespace MagicaCloth2
                 proxyMesh?.Dispose();
 
                 // 同期対象がいる場合は相手の一時停止カウンターを減算する
+                // 有同步对象时，减去对方的暂停计数器
                 if (cloth != null && cloth.SyncCloth)
                 {
                     var sync = cloth.SyncCloth;
@@ -946,10 +965,11 @@ namespace MagicaCloth2
                     }
                 }
 
-                // ビルド完了
+                // ビルド完了 构建完成
                 isBuild = false;
 
                 // この時点でコンポーネントが削除されている場合は破棄する
+                // 如果此时已删除组件，则放弃
                 if (isDestory)
                 {
                     DisposeInternal();
@@ -961,6 +981,7 @@ namespace MagicaCloth2
                         Develop.LogError($"Cloth runtime build failure! [{cloth.name}] : {result.GetResultString()}");
 
                     // ビルド完了イベント
+                    // 构建完成事件
                     cloth.OnBuildComplete?.Invoke(result.IsSuccess());
                 }
             }

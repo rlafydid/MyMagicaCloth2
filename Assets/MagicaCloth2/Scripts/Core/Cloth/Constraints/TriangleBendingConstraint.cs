@@ -148,6 +148,7 @@ namespace MagicaCloth2
 
         /// <summary>
         /// ボリューム計算の浮動小数点誤差を回避するための倍数
+        /// 用于避免体积计算浮点误差的倍数
         /// </summary>
         const float VolumeScale = 1000.0f;
 
@@ -228,6 +229,7 @@ namespace MagicaCloth2
                 using var multiBuilder = new MultiDataBuilder<byte>(vcnt, vcnt * 2);
 
                 // エッジごとの接続トライアングルをループ
+                // 循环每个边的连接三角
                 for (int k = 0; k < ecnt; k++)
                 {
                     int2 edge = proxyMesh.edges[k];
@@ -238,6 +240,7 @@ namespace MagicaCloth2
                     int tcnt = triangles.Length;
 
                     // トライアングルの組み合わせ
+                    // 三角组合
                     for (int i = 0; i < tcnt - 1; i++)
                     {
                         // 0
@@ -255,15 +258,19 @@ namespace MagicaCloth2
 
                             // 4点の構成
                             // 頂点インデックス形成
+                            // 4点配置
+                            // 顶点索引形成
                             //   v2 +
                             //     /|\
                             // v0 + | + v1
                             //     \|/
                             //   v3 +
                             // 2/3が共通の辺, 0/1が対角点
+                            // 2/3为共同边，0/1为对角点
                             int4 vtx = new int4(dp.x, dp.y, edge.x, edge.y);
 
                             // ４点がすべて固定ならば除外する
+                            // 4点全部固定的话除外
                             var attr0 = proxyMesh.attributes[vtx.x];
                             var attr1 = proxyMesh.attributes[vtx.y];
                             var attr2 = proxyMesh.attributes[vtx.z];
@@ -272,19 +279,23 @@ namespace MagicaCloth2
                                 continue;
 
                             // １点でも無効なら除外する
+                            // 1分也无效的话除外
                             if (attr0.IsInvalid() || attr1.IsInvalid() || attr2.IsInvalid() || attr3.IsInvalid())
                                 continue;
 
+                            //四个顶点，一对三角
                             ulong pair = DataUtility.Pack64(vtx);
 
                             // (1)TriangleBendingとして登録判定
                             float restData;
                             sbyte signFlag;
+                            // 两面角
                             InitDihedralAngle(proxyMesh, vtx.x, vtx.y, vtx.z, vtx.w, out restData, out signFlag);
                             var degAngle = math.abs(math.degrees(restData));
-                            if (degAngle < Define.System.TriangleBendingMaxAngle) // 90度以上で登録すると不安定になる
+                            if (degAngle < Define.System.TriangleBendingMaxAngle) // 90度以上で登録すると不安定になる 90度以上注册的话会变得不稳定
                             {
                                 trianglePairList.Add(pair);
+                                // 角度
                                 restAngleOrVolumeList.Add(restData);
                                 signOrVolumeList.Add(signFlag);
                                 //Debug.Log($"rest angle:{math.degrees(restData)}, signFlag:{signFlag}");
@@ -305,6 +316,7 @@ namespace MagicaCloth2
                                 bendingCount++;
                             }
                             // (2)Volumeとして登録判定
+                            // (2)作为Volume注册判定
                             if (degAngle >= Define.System.VolumeMinAngle && degAngle <= 179.0f)
                             {
                                 var sortPack = DataUtility.PackInt4(vtx);
@@ -312,8 +324,8 @@ namespace MagicaCloth2
                                 {
 
                                     InitVolume(proxyMesh, vtx.x, vtx.y, vtx.z, vtx.w, out restData, out signFlag);
-                                    trianglePairList.Add(pair);
-                                    restAngleOrVolumeList.Add(restData);
+                                    trianglePairList.Add(pair); //四个顶点，一对三角
+                                    restAngleOrVolumeList.Add(restData); //四面体体积
                                     signOrVolumeList.Add(signFlag);
                                     volumeSet.Add(sortPack);
 
@@ -370,18 +382,30 @@ namespace MagicaCloth2
         {
             // 0/1が対角点,2/3が共通辺
             // ここは実行時とボリューム値を合わせるためワールド座標で計算する必要がある。
+            // 0/1为对角点，2/3为共同边
+            // 这里为了使执行时和音量值一致，需要用世界坐标进行计算。
+            //   v2 +
+            //     /|\
+            // v0 + | + v1
+            //     \|/
+            //   v3 +
             float3 pos0 = MathUtility.TransformPoint(proxyMesh.localPositions[v0], proxyMesh.initLocalToWorld);
             float3 pos1 = MathUtility.TransformPoint(proxyMesh.localPositions[v1], proxyMesh.initLocalToWorld);
             float3 pos2 = MathUtility.TransformPoint(proxyMesh.localPositions[v2], proxyMesh.initLocalToWorld);
             float3 pos3 = MathUtility.TransformPoint(proxyMesh.localPositions[v3], proxyMesh.initLocalToWorld);
 
-            volumeRest = (1.0f / 6.0f) * math.dot(math.cross(pos1 - pos0, pos2 - pos0), pos3 - pos0);
-            volumeRest *= VolumeScale; // 浮動小数点演算誤差回避
+            volumeRest = (1.0f / 6.0f) * math.dot(math.cross(pos1 - pos0, pos2 - pos0), pos3 - pos0); //四面体的体积
+            volumeRest *= VolumeScale; // 浮動小数点演算誤差回避 浮点运算误差避免
             signFlag = VOLUME_SIGN; // Volume
         }
 
         static void InitDihedralAngle(VirtualMesh proxyMesh, int v0, int v1, int v2, int v3, out float restAngle, out sbyte signFlag)
         {
+            //   v2 +
+            //     /|\
+            // v0 + | + v1
+            //     \|/
+            //   v3 +
             // 0/1が対角点,2/3が共通辺
             float3 pos0 = proxyMesh.localPositions[v0];
             float3 pos1 = proxyMesh.localPositions[v1];
@@ -399,6 +423,8 @@ namespace MagicaCloth2
 
             // 方向性の算出
             // 復元方向を正負のフラグとして格納する
+            // 方向性的计算
+            // 将复原方向存储为正负标志
             float3 e = pos3 - pos2;
             float dir = math.dot(math.cross(n1, n2), e);
             float sign = math.sign(dir);

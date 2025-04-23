@@ -234,12 +234,14 @@ namespace MagicaCloth2
             /// <summary>
             /// [Triangle Bending]
             /// TriangleBendを形成する最大の角度
+            /// 形成TriangleBend最大角度
             /// </summary>
             public const float TriangleBendingMaxAngle = 120.0f; // 145?
 
             /// <summary>
             /// [Volume]
             /// Volumeを形成する最小のTriangleペア角度
+            /// 形成体积的最小Triangle对角度
             /// </summary>
             public const float VolumeMinAngle = 90.0f;
 
