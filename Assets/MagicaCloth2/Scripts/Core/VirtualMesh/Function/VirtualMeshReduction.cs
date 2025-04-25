@@ -19,6 +19,8 @@ namespace MagicaCloth2
         /// <summary>
         /// リダクションを実行する（スレッド可）
         /// 処理時間が長いためCancellationTokenを受け入れる
+        /// 执行减少（可线程）
+        /// 由于处理时间长而接受CancellationToken
         /// </summary>
         /// <param name="settings"></param>
         /// <param name="ct"></param>
@@ -816,6 +818,7 @@ namespace MagicaCloth2
         //=========================================================================================
         /// <summary>
         /// リダクション結果をvmeshに反映させる
+        /// 在vmesh中反映减少结果
         /// </summary>
         /// <param name="setting"></param>
         /// <param name="workData"></param>
@@ -827,6 +830,8 @@ namespace MagicaCloth2
 
                 // 参照インデックス
                 // すべて連番で再設定する
+                // 参考索引
+                // 全部按顺序重新设置
                 referenceIndices.Dispose();
                 referenceIndices = new ExSimpleNativeArray<int>(vcnt);
                 JobUtility.SerialNumberRun(referenceIndices.GetNativeArray(), vcnt);
@@ -870,6 +875,7 @@ namespace MagicaCloth2
                 triangles = new ExSimpleNativeArray<int3>(workData.newTriangleList);
 
                 // トランスフォーム情報再編成
+                // 变换信息重组
                 transformData.OrganizeReductionTransform(this, workData);
 
                 // skin bone index

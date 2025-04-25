@@ -589,6 +589,7 @@ namespace MagicaCloth2
             public void Execute(int index)
             {
                 // インデックスのチームは有効であることが保証されている
+                // 索引团队已确保有效
                 uint pack = (uint)stepTriangleBendIndexArray[index];
                 int pairIndex = DataUtility.Unpack12_20Low(pack);
                 int teamId = DataUtility.Unpack12_20Hi(pack);

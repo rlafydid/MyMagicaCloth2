@@ -8,6 +8,7 @@ namespace MagicaCloth2
 {
     /// <summary>
     /// トランスフォーム情報の一時記録
+    /// 临时记录转换信息
     /// </summary>
     public class TransformRecord : IValid, ITransform
     {

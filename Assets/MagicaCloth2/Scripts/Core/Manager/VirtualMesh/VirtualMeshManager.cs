@@ -662,7 +662,8 @@ namespace MagicaCloth2
 
         //=========================================================================================
         /// <summary>
-        /// ProxyMeshの現在の姿勢を計算する 计算ProxyMesh的当前姿态
+        /// ProxyMeshの現在の姿勢を計算する
+        /// 计算ProxyMesh的当前姿态
         /// </summary>
         /// <param name="jobHandle"></param>
         /// <returns></returns>
@@ -692,7 +693,8 @@ namespace MagicaCloth2
             };
             jobHandle = clearJob.Schedule(jobHandle);
 
-            // [BoneCloht][MeshCloth]処理頂点インデックスリストを作成する 创建处理顶点索引列表
+            // [BoneCloht][MeshCloth]処理頂点インデックスリストを作成する
+            // 创建处理顶点索引列表
             var job1 = new CreateProxyMeshUpdateVertexList()
             {
                 teamDataArray = tm.teamDataArray.GetNativeArray(),
@@ -702,7 +704,8 @@ namespace MagicaCloth2
             };
             jobHandle = job1.Schedule(tm.TeamCount, 1, jobHandle);
 
-            // [BoneCloht][MeshCloth] ProxyMeshをスキニングして頂点姿勢を求める  蒙皮ProxyMesh以获得顶点姿态
+            // [BoneCloht][MeshCloth] ProxyMeshをスキニングして頂点姿勢を求める
+            // 蒙皮ProxyMesh以获得顶点姿态
             var calcSkinningJob = new CalcProxyMeshSkinningJob()
             {
                 jobVertexIndexList = sm.processingStepTriangleBending.Buffer,

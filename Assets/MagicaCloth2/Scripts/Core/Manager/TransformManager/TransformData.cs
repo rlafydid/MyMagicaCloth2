@@ -1,6 +1,7 @@
 ﻿// Magica Cloth 2.
 // Copyright (c) 2023 MagicaSoft.
 // https://magicasoft.jp
+
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -16,6 +17,8 @@ namespace MagicaCloth2
     /// <summary>
     /// TransformAccessArrayを中心とした一連のTransform管理クラス
     /// スレッドで利用できるように様々な工夫を行っている
+    /// 一系列以TransformAccessArray为中心的Transform管理类
+    /// 为了能在线程上使用，做了各种各样的努力
     /// </summary>
     public partial class TransformData : IDisposable
     {
@@ -102,7 +105,9 @@ namespace MagicaCloth2
         Queue<int> emptyStack;
 
         //=========================================================================================
-        public TransformData() { }
+        public TransformData()
+        {
+        }
 
         public TransformData(int capacity)
         {
@@ -161,16 +166,20 @@ namespace MagicaCloth2
         /// <summary>
         /// Transform単体を追加する(tidを指定するならスレッド可）
         /// すでに登録済みの同じトランスフォームがある場合はそのインデックスを返す
+        /// 添加单个Transform（指定tid时可线程）
+        /// 如果存在已注册的相同变换，则返回该索引
         /// </summary>
         /// <param name="t"></param>
         /// <param name="tid">0の場合はTransformからGetInstanceId()を即時設定する</param>
         /// <param name="flag"></param>
         /// <returns></returns>
-        public int AddTransform(Transform t, int tid = 0, int pid = 0, byte flag = TransformManager.Flag_Read, bool checkDuplicate = true)
+        public int AddTransform(Transform t, int tid = 0, int pid = 0, byte flag = TransformManager.Flag_Read,
+            bool checkDuplicate = true)
         {
             int index;
 
             // 重複チェック
+            // 重复检查
             if (checkDuplicate)
             {
                 index = ReferenceIndexOf(transformList, t);
@@ -266,7 +275,8 @@ namespace MagicaCloth2
         /// <param name="flag"></param>
         /// <param name="checkDuplicate">重複チェックの有無</param>
         /// <returns></returns>
-        public int AddTransform(TransformRecord record, int pid = 0, byte flag = TransformManager.Flag_Read, bool checkDuplicate = true)
+        public int AddTransform(TransformRecord record, int pid = 0, byte flag = TransformManager.Flag_Read,
+            bool checkDuplicate = true)
         {
             int index;
 
@@ -439,7 +449,7 @@ namespace MagicaCloth2
                 new List<int>(stdata.idArray.ToArray()),
                 new List<int>(stdata.parentIdArray.ToArray()),
                 copyCount
-                );
+            );
         }
 
         /// <summary>
@@ -467,7 +477,7 @@ namespace MagicaCloth2
             NativeArray<quaternion> rotations,
             NativeArray<float3> scales,
             NativeArray<quaternion> inverseRotations
-            )
+        )
         {
             int tcnt = tlist.Count;
             Debug.Assert(tcnt > 0);
@@ -530,7 +540,8 @@ namespace MagicaCloth2
         /// <param name="tid">0の場合はTransformからGetInstanceId()を即時設定する</param>
         /// <param name="flag"></param>
         /// <returns></returns>
-        public int ReplaceTransform(int index, Transform t, int tid = 0, int pid = 0, byte flag = TransformManager.Flag_Read)
+        public int ReplaceTransform(int index, Transform t, int tid = 0, int pid = 0,
+            byte flag = TransformManager.Flag_Read)
         {
             Debug.Assert(index < Count);
 
@@ -586,6 +597,7 @@ namespace MagicaCloth2
                 if (ReferenceEquals(list[i], item))
                     return i;
             }
+
             return -1;
         }
 
@@ -634,13 +646,10 @@ namespace MagicaCloth2
         struct RestoreTransformJob : IJobParallelForTransform
         {
             public int count;
-            [Unity.Collections.ReadOnly]
-            public NativeArray<ExBitFlag8> flagList;
+            [Unity.Collections.ReadOnly] public NativeArray<ExBitFlag8> flagList;
 
-            [Unity.Collections.ReadOnly]
-            public NativeArray<float3> localPositionArray;
-            [Unity.Collections.ReadOnly]
-            public NativeArray<quaternion> localRotationArray;
+            [Unity.Collections.ReadOnly] public NativeArray<float3> localPositionArray;
+            [Unity.Collections.ReadOnly] public NativeArray<quaternion> localRotationArray;
 
             public void Execute(int index, TransformAccess transform)
             {
@@ -705,21 +714,14 @@ namespace MagicaCloth2
         [BurstCompile]
         struct ReadTransformJob : IJobParallelForTransform
         {
-            [Unity.Collections.ReadOnly]
-            public NativeArray<ExBitFlag8> flagList;
+            [Unity.Collections.ReadOnly] public NativeArray<ExBitFlag8> flagList;
 
-            [Unity.Collections.WriteOnly]
-            public NativeArray<float3> positionArray;
-            [Unity.Collections.WriteOnly]
-            public NativeArray<quaternion> rotationArray;
-            [Unity.Collections.WriteOnly]
-            public NativeArray<float3> scaleList;
-            [Unity.Collections.WriteOnly]
-            public NativeArray<float3> localPositionArray;
-            [Unity.Collections.WriteOnly]
-            public NativeArray<quaternion> localRotationArray;
-            [Unity.Collections.WriteOnly]
-            public NativeArray<quaternion> inverseRotationArray;
+            [Unity.Collections.WriteOnly] public NativeArray<float3> positionArray;
+            [Unity.Collections.WriteOnly] public NativeArray<quaternion> rotationArray;
+            [Unity.Collections.WriteOnly] public NativeArray<float3> scaleList;
+            [Unity.Collections.WriteOnly] public NativeArray<float3> localPositionArray;
+            [Unity.Collections.WriteOnly] public NativeArray<quaternion> localRotationArray;
+            [Unity.Collections.WriteOnly] public NativeArray<quaternion> inverseRotationArray;
 
             public void Execute(int index, TransformAccess transform)
             {
@@ -818,34 +820,35 @@ namespace MagicaCloth2
         //=========================================================================================
         /// <summary>
         /// リダクション結果に基づいてTransformの情報を再編成する（スレッド可）
+        /// 根据减少结果重新组织变换信息（可线程）
         /// </summary>
         /// <param name="vmesh"></param>
         /// <param name="workData"></param>
         public void OrganizeReductionTransform(VirtualMesh vmesh, ReductionWorkData workData)
         {
-            // 新しいTransformに対して参照する古いインデックスのリストを作成する
+            // 为新的Transform创建一个引用旧索引的列表
             int newSkinBoneCount = workData.newSkinBoneCount.Value;
             var oldToNewIndexList = new List<int>(newSkinBoneCount + 2);
 
-            // 最初にスキニング用ボーンを追加する
+            // 首先添加用于蒙皮的骨骼
             foreach (var kv in workData.useSkinBoneMap)
             {
-                // スキンボーンの実際のトランスフォームインデックスはskinBoneTransformIndicesに格納されている
+                // 蒙皮骨骼的实际Transform索引存储在skinBoneTransformIndices中
                 oldToNewIndexList.Add(vmesh.skinBoneTransformIndices[kv.Key]);
             }
 
-            // skin rootを追加する
+            // 添加skin root
             int newSkinRootIndex = oldToNewIndexList.Count;
             oldToNewIndexList.Add(vmesh.skinRootIndex);
 
-            // center transformを追加する
+            // 添加center transform
             int newCenterTransformIndex = oldToNewIndexList.Count;
             oldToNewIndexList.Add(vmesh.centerTransformIndex);
 
-            // 新しいトランスフォームの数
+            // 新的Transform数量
             int newTransformCount = oldToNewIndexList.Count;
 
-            // 新しい領域
+            // 新的区域
             var newTransformList = new List<Transform>(newTransformCount);
             var newTransformIdArray = new ExSimpleNativeArray<int>(newTransformCount);
             var newParentIdArray = new ExSimpleNativeArray<int>(newTransformCount);
@@ -856,7 +859,7 @@ namespace MagicaCloth2
             var newRotationArray = new ExSimpleNativeArray<quaternion>(newTransformCount);
             var newScaleArray = new ExSimpleNativeArray<float3>(newTransformCount);
 
-            // データコピー
+            // 数据复制
             for (int i = 0; i < newTransformCount; i++)
             {
                 int oldIndex = oldToNewIndexList[i];
@@ -872,7 +875,7 @@ namespace MagicaCloth2
                 newScaleArray[i] = scaleArray[oldIndex];
             }
 
-            // 以前の要素を破棄する
+            // 销毁旧元素
             transformList.Clear();
             idArray.Dispose();
             parentIdArray.Dispose();
@@ -883,7 +886,7 @@ namespace MagicaCloth2
             rotationArray.Dispose();
             scaleArray.Dispose();
 
-            // 新しい要素に組み換え
+            // 重组新元素
             transformList = newTransformList;
             idArray = newTransformIdArray;
             parentIdArray = newParentIdArray;
@@ -894,14 +897,14 @@ namespace MagicaCloth2
             rotationArray = newRotationArray;
             scaleArray = newScaleArray;
 
-            // 管理情報更新
+            // 更新管理信息
             emptyStack.Clear();
 
             // Virtual Mesh修正
             vmesh.centerTransformIndex = newCenterTransformIndex;
             vmesh.skinRootIndex = newSkinRootIndex;
 
-            // Dirty
+            // 标记为已修改
             isDirty = true;
         }
 
@@ -926,6 +929,7 @@ namespace MagicaCloth2
                 if (array[i] == id)
                     return i;
             }
+
             return -1;
         }
 

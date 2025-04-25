@@ -75,6 +75,8 @@ namespace MagicaCloth2
         /// <summary>
         /// 読み込み用トランスフォームアクセス配列
         /// この配列は上記の配列グループとインデックが同期している
+        /// 读取用变换访问数组
+        /// 该数组与上述数组组索引同步
         /// </summary>
         internal TransformAccessArray transformAccessArray;
 
@@ -634,6 +636,7 @@ namespace MagicaCloth2
                     return;
 
                 // カリング時は書き込まない
+                // 标记时不写入
                 int teamId = teamIdArray[index];
                 var tdata = teamDataArray[teamId];
                 if (tdata.IsCullingInvisible)
@@ -649,6 +652,7 @@ namespace MagicaCloth2
                 localRotationArray[index] = transform.localRotation;
 
                 // マトリックスから正確なスケール値を算出する（これはTransform.lossyScaleと等価）
+                // 根据矩阵计算准确的比例值（这与Transform.lossyScale等价）
                 var irot = math.inverse(rot);
                 var m2 = math.mul(new float4x4(irot, float3.zero), LtoW);
                 var scl = new float3(m2.c0.x, m2.c1.y, m2.c2.z);
@@ -661,6 +665,7 @@ namespace MagicaCloth2
                 //inverseRotationArray[index] = math.inverse(rot);
 
                 // ワールド変換マトリックス
+                // 世界变换矩阵
                 localToWorldMatrixArray[index] = LtoW;
             }
         }

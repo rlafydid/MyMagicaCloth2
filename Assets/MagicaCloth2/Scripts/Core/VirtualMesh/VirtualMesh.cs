@@ -74,6 +74,7 @@ namespace MagicaCloth2
         //=========================================================================================
         /// <summary>
         /// 現在の頂点が指す元の頂点インデックス
+        /// 当前顶点指向的原始顶点索引
         /// </summary>
         public ExSimpleNativeArray<int> referenceIndices = new ExSimpleNativeArray<int>();
 
@@ -88,6 +89,7 @@ namespace MagicaCloth2
 
         /// <summary>
         /// VirtualMeshのUVはTangent計算用でありテクスチャマッピング用ではないので注意！
+        /// 注意，虚拟网格的UV用于Tangent计算而不是纹理映射
         /// </summary>
         public ExSimpleNativeArray<float2> uv = new ExSimpleNativeArray<float2>();
         public ExSimpleNativeArray<VirtualMeshBoneWeight> boneWeights = new ExSimpleNativeArray<VirtualMeshBoneWeight>();
@@ -323,19 +325,19 @@ namespace MagicaCloth2
 
         /// <summary>
         /// ベースラインごとのデータ開始インデックス
-        /// 每个基线的数据起始索引
+        /// 每个基线的数据起始索引 /每个根的起始索引
         /// </summary>
         public NativeArray<ushort> baseLineStartDataIndices;
 
         /// <summary>
         /// ベースラインごとのデータ数
-        /// 每个基线的数据数
+        /// 每个基线的数据数 /每个根的所有层的子数量
         /// </summary>
         public NativeArray<ushort> baseLineDataCounts;
 
         /// <summary>
         /// ベースラインデータ（頂点インデックス）
-        /// 基线数据（顶点索引）
+        /// 基线数据（顶点索引）  / 根->子->子子， 根->子->子子 这样的方式排序
         /// </summary>
         public NativeArray<ushort> baseLineData;
 

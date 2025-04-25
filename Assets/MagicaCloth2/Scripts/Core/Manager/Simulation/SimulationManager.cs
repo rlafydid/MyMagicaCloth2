@@ -115,6 +115,7 @@ namespace MagicaCloth2
         //=========================================================================================
         /// <summary>
         /// フレームもしくはステップごとに変動するリストを管理するための汎用バッファ。用途は様々
+        /// 用于管理每帧或步骤变动的列表的通用缓冲器
         /// </summary>
         internal ExProcessingList<int> processingStepParticle;
         internal ExProcessingList<int> processingStepTriangleBending;
@@ -410,7 +411,7 @@ namespace MagicaCloth2
 
         //=========================================================================================
         /// <summary>
-        /// 作業バッファの更新
+        /// 更新工作缓冲区
         /// </summary>
         internal void WorkBufferUpdate()
         {
@@ -421,44 +422,44 @@ namespace MagicaCloth2
             int ccnt = MagicaManager.Collider.DataCount;
             int bendCnt = bendingConstraint.DataCount;
 
-            // ステップ処理パーティクル全般
+            // 粒子的步骤处理
             processingStepParticle.UpdateBuffer(pcnt);
 
-            // ステップ処理トライアングルベンド
+            // 三角形弯曲的步骤处理
             processingStepTriangleBending.UpdateBuffer(bendCnt);
 
-            // ステップ処理コリジョン用エッジ
+            // 碰撞用边缘的步骤处理
             int edgeColliderCount = MagicaManager.Team.edgeColliderCollisionCount;
             processingStepEdgeCollision.UpdateBuffer(edgeColliderCount);
 
-            // 処理コライダー
+            // 处理碰撞器
             processingStepCollider.UpdateBuffer(ccnt);
 
-            // ステップ処理ベースライン
+            // 基线的步骤处理
             processingStepBaseLine.UpdateBuffer(bcnt);
 
-            // ステップ処理セルフコリジョンパーティクル
+            // 自碰撞粒子的步骤处理
             //processingIntList5.UpdateBuffer(pcnt);
 
-            // ステップ実行モーション制約パーティクル
+            // 运动约束粒子的步骤执行
             processingStepMotionParticle.UpdateBuffer(pcnt);
 
-            // セルフコリジョン
+            // 自碰撞
             processingSelfParticle.UpdateBuffer(pcnt);
             processingSelfPointTriangle.UpdateBuffer(selfCollisionConstraint.PointPrimitiveCount);
             processingSelfEdgeEdge.UpdateBuffer(selfCollisionConstraint.EdgePrimitiveCount);
             processingSelfTrianglePoint.UpdateBuffer(selfCollisionConstraint.TrianglePrimitiveCount);
 
-            // 汎用作業バッファ
+            // 通用工作缓冲区
             tempFloat3Buffer.MC2Resize(pcnt);
             stepBasicPositionBuffer.MC2Resize(pcnt);
             stepBasicRotationBuffer.MC2Resize(pcnt);
 
-            // 加算バッファ
+            // 加法缓冲区
             countArray.MC2Resize(pcnt);
             sumArray.MC2Resize(pcnt * 3);
 
-            // 制約
+            // 约束
             angleConstraint.WorkBufferUpdate();
             colliderCollisionConstraint.WorkBufferUpdate();
             selfCollisionConstraint.WorkBufferUpdate();
@@ -601,7 +602,7 @@ namespace MagicaCloth2
                     var velocity = velocityArray[pindex];
                     var realVelocity = realVelocityArray[pindex];
 
-                    // ■マイナススケール
+                    // ■マイナススケール 负数
                     if (tdata.IsNegativeScaleTeleport)
                     {
                         // 本体のスケール反転に合わせてシミュレーションに影響が出ないように必要な座標系を同様に軸反転させる

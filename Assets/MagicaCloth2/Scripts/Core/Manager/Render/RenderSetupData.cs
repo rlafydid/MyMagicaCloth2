@@ -409,6 +409,8 @@ namespace MagicaCloth2
                 renderTransformIndex = transformList.Count;
                 transformList.Add(renderTransform);
 
+                // Debug.Log("中心本地坐标：" + renderTransform.localPosition);
+
                 // トランスフォーム情報の読み取り 读取变换信息
                 ReadTransformInformation(includeChilds: true);
 

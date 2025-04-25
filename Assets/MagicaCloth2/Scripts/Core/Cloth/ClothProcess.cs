@@ -571,7 +571,7 @@ namespace MagicaCloth2
                         else if (clothType == ClothType.BoneCloth || clothType == ClothType.BoneSpring)
                         {
                             // ■BoneCloth
-                            // import 主要是生成粒子关联关系
+                            // import 主要是生成粒子关联关系，还有AABB，平均值
                             proxyMesh.ImportFrom(boneClothSetupData);
                             if (proxyMesh.IsError)
                             {

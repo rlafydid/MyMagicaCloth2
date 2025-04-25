@@ -2036,8 +2036,8 @@ namespace MagicaCloth2
 
                     // 格納 存储
                     lineFlags.Add(lineflag);
-                    startIndices.Add(start);
-                    dataCounts.Add(count);
+                    startIndices.Add(start); //每个根的起始索引
+                    dataCounts.Add(count); //每个根的所有层子数量
                 }
             }
             baseLineFlags = new NativeArray<ExBitFlag8>(lineFlags.ToArray(), Allocator.Persistent);

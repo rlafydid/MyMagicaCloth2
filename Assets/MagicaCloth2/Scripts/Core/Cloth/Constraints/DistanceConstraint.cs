@@ -484,6 +484,7 @@ namespace MagicaCloth2
             public void Execute(int index)
             {
                 // pindexのチームは有効であることが保証されている
+                // pindex团队保证有效
                 int pindex = stepParticleIndexArray[index];
 
                 int teamId = teamIdArray[pindex];
@@ -491,6 +492,7 @@ namespace MagicaCloth2
                 var parameter = parameterArray[teamId];
 
                 // 復元を基本姿勢で行うかアニメーション後の姿勢で行うかの判定
+                // 判断是以基本姿势进行复原还是以动画后的姿势进行复原
                 float blendRatio = tdata.animationPoseRatio;
 
                 // スケール倍率
@@ -545,6 +547,7 @@ namespace MagicaCloth2
                 if (dcnt > 0)
                 {
                     // 基準座標を切り替え
+                    // 切换基准坐标
                     float3 basePos = basePosArray[pindex];
                     //float3 basicPos = stepBasicPositionBuffer[pindex];
 
@@ -557,10 +560,11 @@ namespace MagicaCloth2
                         int t_l_index = dataArray[start + i];
                         float restDist = distanceArray[start + i];
 
-                        // タイプ別剛性
+                        // タイプ別剛性 按类型列出的刚性
                         float finalStiffness = math.saturate(restDist >= 0.0f ? stiffness : stiffness * Define.System.DistanceHorizontalStiffness);
 
                         // 相手パーティクル情報
+                        // 目标粒子信息
                         int tpindex = p_start + t_l_index;
                         int tvindex = v_start + t_l_index;
                         var t_nextPos = nextPosArray[tpindex];
@@ -579,6 +583,9 @@ namespace MagicaCloth2
                         // 復元する長さ
                         // !Distance制約は初期化時に保存した距離を見るようにしないと駄目
                         // フラグにより初期値かアニメーション後の姿勢かを切り替える
+                        // 恢复长度
+                        // !距离约束必须在初始化时查看保存的距离
+                        // 通过标志切换初始值还是动画后的姿势
                         float restLength = math.lerp(math.abs(restDist) * scl, math.distance(basePos, t_basePos), blendRatio);
                         //float restLength = math.distance(basicPos, t_basicPos);
 

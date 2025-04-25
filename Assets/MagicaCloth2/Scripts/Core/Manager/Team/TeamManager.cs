@@ -1399,6 +1399,8 @@ namespace MagicaCloth2
         /// <summary>
         /// チームごとのセンター姿勢の決定と慣性用の移動量計算
         /// および風の影響を計算
+        /// 每个团队的中心姿势的决定和惯性用的移动量计算
+        /// 计算风的影响
         /// </summary>
         /// <param name="jobHandle"></param>
         /// <returns></returns>
@@ -1472,7 +1474,8 @@ namespace MagicaCloth2
             [Unity.Collections.ReadOnly]
             public NativeArray<WindManager.WindData> windDataArray;
 
-            // チームごと 每个团队
+            // チームごと
+            // 每个团队
             public void Execute(int teamId)
             {
                 if (teamId == 0)
@@ -1484,11 +1487,14 @@ namespace MagicaCloth2
                 var param = parameterArray[teamId];
                 var cdata = centerDataArray[teamId];
 
-                // ■コンポーネントトランスフォーム同期 组件变换同步
-                // 同期中は同期先のコンポーネントトランスフォームからワールド慣性を計算する 同步过程中，根据同步目标组件变换计算世界惯性
+                // ■コンポーネントトランスフォーム同期
+                // 同期中は同期先のコンポーネントトランスフォームからワールド慣性を計算する
+                // 组件变换同步
+                // 同步过程中，根据同步目标组件变换计算世界惯性
                 int centerTransformIndex = (tdata.syncTeamId != 0 && tdata.flag.IsSet(Flag_Synchronization)) ? tdata.syncCenterTransformIndex : cdata.centerTransformIndex;
 
-                // ■コンポーネント姿勢 组件姿态
+                // ■コンポーネント姿勢
+                // 组件姿态
                 float3 componentWorldPos = transformPositionArray[centerTransformIndex];
                 quaternion componentWorldRot = transformRotationArray[centerTransformIndex];
                 float3 componentWorldScl = transformScaleArray[centerTransformIndex];
@@ -1497,11 +1503,13 @@ namespace MagicaCloth2
                 cdata.componentWorldScale = componentWorldScl;
                 //Debug.Log($"componentWorldPos:{componentWorldPos}, componentWorldRot:{componentWorldRot.value}");
 
-                // コンポーネントスケール倍率 组件缩放比例
+                // コンポーネントスケール倍率
+                // 组件缩放比例
                 float componentScaleRatio = math.length(componentWorldScl) / math.length(tdata.initScale);
 
                 // ■マイナススケール 负比例
-                // マイナススケールの場合は計算に必要なデータを予め作成しておく 在负比例的情况下，预先制作计算所需的数据
+                // マイナススケールの場合は計算に必要なデータを予め作成しておく
+                // 在负比例的情况下，预先制作计算所需的数据
                 float3 oldInverseScaleDirection = tdata.negativeScaleDirection;
                 tdata.negativeScaleDirection = math.sign(componentWorldScl); // 各スケールの方向(1/-1) 每个缩放的方向（1/-1）
                 tdata.negativeScaleChange = oldInverseScaleDirection * tdata.negativeScaleDirection; // 今回スケール反転された方向(1:変化なし, -1:反転あり) 这次缩放反转的方向（1:没有变化，-1:有反转）
@@ -1521,7 +1529,8 @@ namespace MagicaCloth2
                     tdata.negativeScaleTriangleSign = 1;
                     tdata.flag.SetBits(Flag_NegativeScale, false);
                 }
-                // 以前とスケール方向が変わっていたいたら軸反転テレポートを行う 如果缩放方向与以前不同，则进行轴反转传送
+                // 以前とスケール方向が変わっていたいたら軸反転テレポートを行う
+                // 如果缩放方向与以前不同，则进行轴反转传送
                 if (oldInverseScaleDirection.Equals(tdata.negativeScaleDirection) == false)
                 {
                     // 軸反転テレポート 轴反转电话端口
@@ -1533,12 +1542,12 @@ namespace MagicaCloth2
                     // コンポーネント反転用マトリックス 组件反转矩阵
                     float4x4 nowComponentLW = float4x4.TRS(componentWorldPos, componentWorldRot, componentWorldScl);
                     float4x4 oldComponentLW = float4x4.TRS(cdata.oldComponentWorldPosition, cdata.oldComponentWorldRotation, cdata.oldComponentWorldScale);
-                    float4x4 componentNegativeM = math.mul(nowComponentLW, math.inverse(oldComponentLW));
+                    float4x4 componentNegativeM = math.mul(nowComponentLW, math.inverse(oldComponentLW)); // 可以理解为是矩阵偏移差
 
                     // コンポーネント空間のものを反転させる 反转组件空间
                     // Transformに関するものは回転を反転させる必要はない  变换不需要反转旋转
                     cdata.oldComponentWorldPosition = MathUtility.TransformPoint(cdata.oldComponentWorldPosition, componentNegativeM);
-                    cdata.oldComponentWorldScale = componentWorldScl; // スケールはリセット
+                    cdata.oldComponentWorldScale = componentWorldScl; // スケールはリセット 重置缩放
                     cdata.oldAnchorPosition = MathUtility.TransformPoint(cdata.oldAnchorPosition, componentNegativeM);
                     cdata.smoothingVelocity = MathUtility.TransformVector(cdata.smoothingVelocity, componentNegativeM);
                 }
@@ -1551,7 +1560,8 @@ namespace MagicaCloth2
                 var centerWorldPos = componentWorldPos;
                 var centerWorldRot = componentWorldRot;
 
-                // 固定点リストがある場合は固定点の姿勢から算出する、ない場合はクロストランスフォームを使用する 有固定点列表时根据固定点姿势计算，没有时使用交叉变换
+                // 固定点リストがある場合は固定点の姿勢から算出する、ない場合はクロストランスフォームを使用する
+                // 有固定点列表时根据固定点姿势计算，没有时使用交叉变换
                 if (tdata.fixedDataChunk.IsValid)
                 {
                     float3 cen = 0;
@@ -1578,7 +1588,8 @@ namespace MagicaCloth2
                             rot = MathUtility.ToRotation(-n, -t);
                         }
 
-                        // 頂点バインドポーズを乗算して初期姿勢の一定方向に合わせる 乘以顶点绑定姿势以适应初始姿势的恒定方向
+                        // 頂点バインドポーズを乗算して初期姿勢の一定方向に合わせる
+                        // 乘以顶点绑定姿势以适应初始姿势的恒定方向
                         rot = math.mul(rot, vertexBindPoseRotations[vindex]);
 
                         nor += MathUtility.ToNormal(rot);
@@ -1622,11 +1633,13 @@ namespace MagicaCloth2
                 if (tdata.flag.IsSet(Flag_Anchor))
                 {
                     // アンカーの移動回転影響
+                    // 锚点移动旋转影响
                     float3 anchorCenterPosition = MathUtility.TransformPoint(cdata.anchorComponentLocalPosition, cdata.anchorPosition, cdata.anchorRotation, 1);
                     anchorDeltaVector = anchorCenterPosition - oldComponentWorldPosition;
                     anchorDeltaRotation = MathUtility.FromToRotation(cdata.oldAnchorRotation, cdata.anchorRotation);
 
                     // アンカーの影響割合
+                    // 锚点影响百分比
                     float anchorRatio = 1.0f - param.inertiaConstraint.anchorInertia;
                     anchorDeltaVector = math.lerp(float3.zero, anchorDeltaVector, anchorRatio);
                     anchorDeltaRotation = math.slerp(quaternion.identity, anchorDeltaRotation, anchorRatio);
@@ -1645,9 +1658,12 @@ namespace MagicaCloth2
 
                 // ■テレポート判定（コンポーネント姿勢から判定する）
                 // 同期時は同期先のテレポートモードとパラメータが入っている
+                //■ 电信判定（根据组件姿势判定）
+                // 同步时包含同步目标的电信模式和参数
                 if (param.inertiaConstraint.teleportMode != InertiaConstraint.TeleportMode.None && tdata.IsReset == false)
                 {
                     // 移動と回転どちらか一方がしきい値を超えたらテレポートと判定
+                    // 如果移动和旋转中的一方超过阈值，则判定为电信
                     bool isTeleport = false;
                     isTeleport = math.length(frameDeltaVector) >= param.inertiaConstraint.teleportDistance * componentScaleRatio ? true : isTeleport;
                     isTeleport = math.degrees(frameDeltaAngle) >= param.inertiaConstraint.teleportRotation ? true : isTeleport;
@@ -1671,28 +1687,36 @@ namespace MagicaCloth2
                 // ワールド慣性の急激な変化および小刻みな変化によりクロスが乱れる問題を解消するために慣性をスムージングする
                 // ・慣性の急激な変化（急発進・急停止）によるクロスの乱れの緩和
                 // ・慣性の小刻みな変化によるクロスの振動の緩和
+                //■ 平滑
+                // 为了解决由于世界惯性的急剧变化和微小变化而引起的交叉混乱的问题，对惯性进行平滑处理
+                // ·通过惯性的急剧变化（急启动·急停止）缓和交叉的混乱
+                // ·通过惯性的微小变化缓和布料的振动
                 float3 smoothDeltaVector = 0;
 #if true
                 if (param.inertiaConstraint.movementInertiaSmoothing >= 1e-06f)
                 {
                     // 慣性速度をスムージングする
                     // 測定はシミュレーションが実行される場合のみ行う（そうしないと振動が発生する）
+                    //平滑惯性速度
+                    //测量仅在执行模拟时进行（否则会产生振动）
                     if (tdata.IsRunning)
                     {
-                        float3 frameDeltaVelocity = tdata.frameDeltaTime > 0.0f ? frameDeltaVector / tdata.frameDeltaTime : 0; // 速度ベクトル(m/s)
-                        float movementSpeedLimit = param.inertiaConstraint.movementSpeedLimit * componentScaleRatio; // 同期時は同期先の値が入っている
+                        float3 frameDeltaVelocity = tdata.frameDeltaTime > 0.0f ? frameDeltaVector / tdata.frameDeltaTime : 0; // 速度ベクトル(m/s) 速度向量
+                        float movementSpeedLimit = param.inertiaConstraint.movementSpeedLimit * componentScaleRatio; // 同期時は同期先の値が入っている 同步时包含同步目标值
                         if (movementSpeedLimit >= 0.0f)
                         {
                             // 最大速度制限
                             frameDeltaVelocity = MathUtility.ClampVector(frameDeltaVelocity, movementSpeedLimit);
                         }
                         float averageRatio = math.saturate(math.pow(1.0f - param.inertiaConstraint.movementInertiaSmoothing, 3.0f) * 0.99f + 0.01f);
-                        cdata.smoothingVelocity = math.lerp(cdata.smoothingVelocity, frameDeltaVelocity, averageRatio); // 比重により平滑化
+                        cdata.smoothingVelocity = math.lerp(cdata.smoothingVelocity, frameDeltaVelocity, averageRatio); // 比重により平滑化 比重平滑化
                     }
                     //Debug.Log($"smoothingVelocity:{cdata.smoothingVelocity}");
 
                     // スムージングした慣性速度に基づいて１つ前のコンポーネント位置を補正する
                     // 処理的にはアンカーと同じ考え
+                    //基于平滑惯性速度校正前一组件位置
+                    //处理上与锚相同的想法
                     float3 smoothPos = componentWorldPos - cdata.smoothingVelocity * tdata.frameDeltaTime;
                     smoothDeltaVector = smoothPos - oldComponentWorldPosition;
                     oldComponentWorldPosition = smoothPos;
@@ -1701,6 +1725,7 @@ namespace MagicaCloth2
 #endif
 
                 // リセットおよび最新のセンター座標として格納
+                // 作为重置和最新的中心坐标存储
                 cdata.frameWorldPosition = centerWorldPos;
                 cdata.frameWorldRotation = centerWorldRot;
                 cdata.frameWorldScale = componentWorldScl;
@@ -1728,6 +1753,8 @@ namespace MagicaCloth2
                 {
                     // マイナススケール
                     // センター空間に関するものはリセットする
+                    // 负比例
+                    // 重置中心空间相关内容
                     //Debug.LogWarning($"Team NegativeScale Reset!");
                     cdata.oldFrameWorldPosition = centerWorldPos;
                     cdata.oldFrameWorldRotation = centerWorldRot;
@@ -1741,15 +1768,16 @@ namespace MagicaCloth2
                 }
 
                 // ■ワールド慣性シフト
+                // 世界惯性位移
                 float3 workOldComponentPosition = oldComponentWorldPosition;
                 quaternion workOldComponentRotation = oldComponentWorldRotation;
                 if (tdata.IsReset)
                 {
-                    // リセット（なし）
+                    // リセット（なし） 复位（无）
                     cdata.frameComponentShiftVector = 0;
                     cdata.frameComponentShiftRotation = quaternion.identity;
 
-                    // スムージングリセット
+                    // スムージングリセット  平滑复位
                     cdata.smoothingVelocity = 0;
                     smoothDeltaVector = 0;
                 }
@@ -1762,17 +1790,19 @@ namespace MagicaCloth2
                     float rotationShiftRatio = 0.0f;
 
                     // ■全体慣性シフト
-                    float movementShift = 1.0f - param.inertiaConstraint.worldInertia; // 同期時は同期先の値が入っている
-                    float rotationShift = 1.0f - param.inertiaConstraint.worldInertia; // 同期時は同期先の値が入っている
+                    // 整体惯性位移
+                    float movementShift = 1.0f - param.inertiaConstraint.worldInertia; // 同步时包含同步目标值
+                    float rotationShift = 1.0f - param.inertiaConstraint.worldInertia; // 同步时包含同步目标值
 
                     // KeepテレポートもしくはCulling時はシフト量100%で実装
+                    // 在Keep电信或Culling时以100%的移位量实现
                     bool keep = tdata.IsKeepReset || tdata.IsCullingInvisible;
                     movementShift = keep ? 1.0f : movementShift;
                     rotationShift = keep ? 1.0f : rotationShift;
 
                     if (movementShift > Define.System.Epsilon || rotationShift > Define.System.Epsilon)
                     {
-                        // 全体シフトあり
+                        // 全体シフトあり 有整体移位
                         tdata.flag.SetBits(Flag_InertiaShift, true);
                         moveShiftRatio = movementShift;
                         rotationShiftRatio = rotationShift;
@@ -1782,8 +1812,9 @@ namespace MagicaCloth2
                     }
 
                     // ■最大移動速度制限（全体シフトの結果から計算する）
-                    float movementSpeedLimit = param.inertiaConstraint.movementSpeedLimit * componentScaleRatio; // 同期時は同期先の値が入っている
-                    float rotationSpeedLimit = param.inertiaConstraint.rotationSpeedLimit; // 同期時は同期先の値が入っている
+                    // 最大移动速度限制（根据整体位移的结果计算）
+                    float movementSpeedLimit = param.inertiaConstraint.movementSpeedLimit * componentScaleRatio; // 同步时包含同步目标值
+                    float rotationSpeedLimit = param.inertiaConstraint.rotationSpeedLimit; // 同步时包含同步目标值
                     float3 deltaVector = componentWorldPos - workOldComponentPosition;
                     float deltaAngle = MathUtility.Angle(workOldComponentRotation, componentWorldRot);
                     float frameSpeed = tdata.frameDeltaTime > 0.0f ? math.length(deltaVector) / tdata.frameDeltaTime : 0.0f;
@@ -1804,16 +1835,20 @@ namespace MagicaCloth2
                     }
 
                     // その他の影響
+                    // 其他影响
                     float otherShiftRatio = 0.0f;
 
                     // 更新スキップによるシフト
                     // 更新スキップ時はスキップ時間分ワールド慣性シフトを行う
+                    // 通过跳过更新进行移位
+                    // 跳过更新时进行跳过时间量的世界惯性偏移
                     if (tdata.skipCount > 0)
                     {
                         otherShiftRatio = math.lerp(otherShiftRatio, 1.0f, math.saturate((tdata.skipCount * simulationDeltaTime) / (tdata.frameDeltaTime * tdata.nowTimeScale)));
                     }
 
                     // 安定化時間中は慣性を抑える
+                    // 在稳定化时间内抑制惯性
                     if (tdata.velocityWeight < 1.0f)
                     {
                         otherShiftRatio = math.lerp(otherShiftRatio, 1.0f, 1.0f - tdata.velocityWeight);
@@ -1821,6 +1856,8 @@ namespace MagicaCloth2
 
                     // タイムスケール
                     // タイムスケールの影響分ワールド慣性シフトを行う
+                    // 时间刻度
+                    // 根据时间尺度的影响进行世界惯性偏移
                     if (tdata.nowTimeScale < 1.0f)
                     {
                         otherShiftRatio = math.lerp(otherShiftRatio, 1.0f, 1.0f - tdata.nowTimeScale);
@@ -1836,6 +1873,7 @@ namespace MagicaCloth2
                     }
 
                     // ■慣性シフト最終設定
+                    // 惯性位移最终设定
                     if (tdata.IsInertiaShift)
                     {
                         //Debug.Log($"moveShiftRatio:{moveShiftRatio}, rotationShiftRatio:{rotationShiftRatio}");
@@ -1844,10 +1882,12 @@ namespace MagicaCloth2
                         cdata.frameComponentShiftRotation = math.slerp(quaternion.identity, cdata.frameComponentShiftRotation, rotationShiftRatio);
 
                         // アンカーによる打ち消し
+                        // 用锚点取消
                         cdata.frameComponentShiftVector += anchorDeltaVector;
                         cdata.frameComponentShiftRotation = math.mul(anchorDeltaRotation, cdata.frameComponentShiftRotation);
 
                         // スムージング影響打ち消し
+                        // 消除平滑影响
                         cdata.frameComponentShiftVector += smoothDeltaVector;
 
                         cdata.oldFrameWorldPosition = MathUtility.ShiftPosition(cdata.oldFrameWorldPosition, cdata.oldComponentWorldPosition, cdata.frameComponentShiftVector, cdata.frameComponentShiftRotation);
@@ -1863,6 +1903,7 @@ namespace MagicaCloth2
                 //Debug.Log($"team:[{teamId}] rotationSpeedLimit:{param.inertiaConstraint.rotationSpeedLimit}");
 
                 // ■ワールド移動方向と速度割り出し（慣性シフト後の移動量で計算）
+                // 世界移动方向和速度分度（按惯性移动后的移动量计算）
                 float3 movingVector = componentWorldPos - workOldComponentPosition;
                 float movingLength = math.length(movingVector);
                 cdata.frameMovingSpeed = tdata.frameDeltaTime > 0.0f ? movingLength / tdata.frameDeltaTime : 0.0f;
@@ -1875,6 +1916,7 @@ namespace MagicaCloth2
                 //Debug.Log($"oldWorldPosition:{cdata.oldWorldPosition}, oldWorldRotation:{cdata.oldWorldRotation.value}");
 
                 // センターローカル座標
+                // 中心局部坐标
                 float3 localCenterPos = MathUtility.InverseTransformPoint(centerWorldPos, wtol);
                 cdata.frameLocalPosition = localCenterPos;
 
@@ -1886,6 +1928,7 @@ namespace MagicaCloth2
                 }
 
                 // 風の影響を計算
+                // 计算风的影响
                 Wind(teamId, param, centerWorldPos);
 
                 centerDataArray[teamId] = cdata;

@@ -225,6 +225,7 @@ namespace MagicaCloth2
 
         /// <summary>
         /// fromからtoへ回転させるクォータニオンを返します
+        /// 返回要从from转到to的四元数
         /// </summary>
         /// <param name="from"></param>
         /// <param name="to"></param>
