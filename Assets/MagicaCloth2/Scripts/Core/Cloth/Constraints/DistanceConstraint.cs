@@ -294,8 +294,8 @@ namespace MagicaCloth2
 #endif
                 // 制約データ登録
                 // 约束数据注册
-                (var dataArryaV, var indexArrayV) = verticalConnection.ToArray(); //该粒子所连接的粒子中，筛选垂直连接关系
-                (var dataArryaH, var indexArrayH) = horizontalConnection.ToArray(); // 该粒子所连接的粒子中，筛选水平连接关系
+                (var dataArryaV, var indexArrayV) = verticalConnection.ToArray(); //该粒子所连接的粒子中，筛选垂直连接关系 //indexArray每个索引是 dataArryaV的起始索引和数量
+                (var dataArryaH, var indexArrayH) = horizontalConnection.ToArray(); // 该粒子所连接的粒子中，筛选水平连接关系/ 其实不是真的水平，而是连接的三角，两个非连接线的点连上
 
                 // すべて無効属性などデータがnullの場合もある
                 // 也有全部无效属性等数据为空的情况
@@ -333,9 +333,19 @@ namespace MagicaCloth2
                         indexList.Add(pack);
                     }
 
-                    constraintData.indexArray = indexList.ToArray();
-                    constraintData.dataArray = dataList.ToArray();
-                    constraintData.distanceArray = distanceList.ToArray();
+                    constraintData.indexArray = indexList.ToArray(); //说白了增加了连接粒子，也就是两个连接三角形的两个点连接
+                    constraintData.dataArray = dataList.ToArray(); //可能有重复的粒子，因为是针对indexList用的数据
+                    constraintData.distanceArray = distanceList.ToArray(); //跟dataList是一对一的
+                    
+                    // 增加了粒子之间的连接
+                    //也就是跟这样的结构一样 DataChunk{
+                    // 粒子数组
+                    //}
+                    //粒子
+                      //  {
+                       // 所有连接的粒子
+                         //   所有连接粒子的距离
+                    //}
                 }
 
                 constraintData.result.SetSuccess();
