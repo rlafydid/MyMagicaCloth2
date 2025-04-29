@@ -1545,9 +1545,11 @@ namespace MagicaCloth2
             float mass = 1.0f;
 
             // 摩擦(0.0 ~ 1.0)により重量を増加させる
+            // 通过摩擦（0.0~1.0）使重量增加
             mass += friction * Define.System.FrictionMass;
 
             // 深さにより重量を増加させる
+            // 根据深度增加重量
             //mass += (1.0f - depth) * Define.System.DepthMass;
             var a = (1.0f - depth);
             mass += a * a * Define.System.DepthMass;
@@ -1558,6 +1560,7 @@ namespace MagicaCloth2
 
         /// <summary>
         /// 逆重量を計算して返す
+        /// 计算并返回反重量
         /// </summary>
         /// <param name="friction"></param>
         /// <returns></returns>

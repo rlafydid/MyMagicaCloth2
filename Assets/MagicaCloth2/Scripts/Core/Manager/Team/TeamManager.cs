@@ -452,6 +452,7 @@ namespace MagicaCloth2
 
             /// <summary>
             /// 初期スケール（ｘ軸のみで判定、均等スケールしか認めていない）
+            /// 初始标尺（仅通过x轴判定，仅确认均等标尺）
             /// </summary>
             public float InitScale => initScale.x;
         }

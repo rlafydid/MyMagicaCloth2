@@ -1012,7 +1012,7 @@ namespace MagicaCloth2
                 if (type == ColliderType.Sphere)
                 {
                     // radius
-                    float radius = csize.x * math.abs(cscl.x); // X軸のみを見る
+                    float radius = csize.x * math.abs(cscl.x); // X軸のみを見る X只看轴
                     work.radius = radius;
 
                     // aabb

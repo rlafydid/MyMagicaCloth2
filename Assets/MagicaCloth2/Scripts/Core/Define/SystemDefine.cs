@@ -142,12 +142,14 @@ namespace MagicaCloth2
             /// <summary>
             /// [Simulation]
             /// 摩擦(0.0 ~ 1.0)に対する増加重量
+            /// 相对于摩擦（0.0~1.0）增加重量
             /// </summary>
             public const float FrictionMass = 3.0f;
 
             /// <summary>
             /// [Simulation]
             /// 深さ(0.0 ~ 1.0)に対する増加重量(深さ0.0のときに最大になる）
+            /// 相对于深度（0.0~1.0）的增重量（深度为0.0时为最大）
             /// </summary>
             public const float DepthMass = 5.0f;
 
