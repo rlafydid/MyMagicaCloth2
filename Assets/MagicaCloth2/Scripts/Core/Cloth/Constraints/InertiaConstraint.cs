@@ -376,7 +376,7 @@ namespace MagicaCloth2
             public float3 oldComponentWorldScale;
 
             /// <summary>
-            /// 現フレームのコンポーネント移動量 当前框架的组件移动量
+            /// 現フレームのコンポーネント移動量 当前框架的组件移动量(变化量)
             /// </summary>
             public float3 frameComponentShiftVector;
             public quaternion frameComponentShiftRotation;
@@ -398,8 +398,8 @@ namespace MagicaCloth2
             /// <summary>
             /// 前フレームの姿勢 前框架姿势
             /// </summary>
-            public float3 oldFrameWorldPosition;
-            public quaternion oldFrameWorldRotation;
+            public float3 oldFrameWorldPosition; // centerWorldPos(固定粒子中心)
+            public quaternion oldFrameWorldRotation; //centerWorldRot（固定粒子旋转中心）
             public float3 oldFrameWorldScale;
 
             /// <summary>

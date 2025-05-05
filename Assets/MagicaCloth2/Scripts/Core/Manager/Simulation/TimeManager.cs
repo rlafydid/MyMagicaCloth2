@@ -114,12 +114,15 @@ namespace MagicaCloth2
             GlobalTimeScale = Mathf.Clamp01(GlobalTimeScale);
 
             // 1ステップのシミュレーション更新時間
+            // 1步模拟更新时间
             SimulationDeltaTime = 1.0f / simulationFrequency;
 
             // 1フレームの最大更新時間
+            // 1帧的最大更新时间
             MaxDeltaTime = SimulationDeltaTime * maxSimulationCountPerFrame;
 
             // 制約解決係数
+            // 约束解决系数
             float t = Define.System.DefaultSimulationFrequency / (float)simulationFrequency;
             SimulationPower = new float4(
                 t, // (3.0 ~ 1.0 ~ 0.6)

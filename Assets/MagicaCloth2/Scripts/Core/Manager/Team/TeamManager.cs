@@ -1186,13 +1186,15 @@ namespace MagicaCloth2
                     edgeColliderCollisionCount += tdata.EdgeCount;
 
                 // セルフコリジョンのフラグやバッファ更新
+                // 自碰撞标志或缓冲区更新
                 if (selfCollisionUpdate)
                 {
                     //Develop.DebugLog("Update Selfcollision");
                     MagicaManager.Simulation.selfCollisionConstraint.UpdateTeam(teamId);
                 }
 
-                // 一部の処理は後処理にする 有些处理后处理
+                // 一部の処理は後処理にする
+                // 有些处理后处理
                 if (cloth.SerializeData.updateMode == ClothUpdateMode.AnimatorLinkage || syncCloth)
                 {
                     workPostProcessList.Add(cprocess);
@@ -1594,7 +1596,7 @@ namespace MagicaCloth2
                         rot = math.mul(rot, vertexBindPoseRotations[vindex]);
 
                         nor += MathUtility.ToNormal(rot);
-                        tan += MathUtility.ToTangent(rot);
+                        tan += MathUtility.ToTangent(rot); //这个切换更像是forward
                     }
 
                     // マイナススケール 负数
@@ -2051,7 +2053,8 @@ namespace MagicaCloth2
 
         //=========================================================================================
         /// <summary>
-        /// ステップごとの前処理（ステップの開始に実行される） 每个步骤的预处理（在步骤开始时执行）
+        /// ステップごとの前処理（ステップの開始に実行される） 
+        /// 每个步骤的预处理（在步骤开始时执行）
         /// </summary>
         /// <param name="updateIndex"></param>
         /// <param name="jobHandle"></param>
@@ -2095,7 +2098,8 @@ namespace MagicaCloth2
                 if (tdata.IsProcess == false)
                     return;
 
-                // ■ステップ実行時のみ処理する 仅在执行步骤时处理
+                // ■ステップ実行時のみ処理する
+                // 仅在执行步骤时处理
                 bool runStep = updateIndex < tdata.updateCount;
                 tdata.flag.SetBits(Flag_StepRunning, runStep);
                 if (updateIndex >= tdata.updateCount)
@@ -2119,7 +2123,8 @@ namespace MagicaCloth2
                 //Debug.Log($"Team[{teamId}] time.{tdata.time}, oldTime:{tdata.oldTime}, frameTime:{tdata.frameUpdateTime}, frameOldTime:{tdata.frameOldTime}, nowUpdateTime:{tdata.nowUpdateTime}, frameInterp:{tdata.frameInterpolation}");
 
                 // ■センター ---------------------------------------------------
-                // 現在ステップでのセンタートランスフォーム姿勢を求める 求出当前步骤中的中心变换姿势
+                // 現在ステップでのセンタートランスフォーム姿勢を求める
+                // 求出当前步骤中的中心变换姿势
                 var cdata = centerDataArray[teamId];
                 cdata.oldWorldPosition = cdata.nowWorldPosition;
                 cdata.oldWorldRotation = cdata.nowWorldRotation;

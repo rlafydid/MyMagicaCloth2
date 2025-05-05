@@ -239,6 +239,8 @@ namespace MagicaCloth2
         /// <summary>
         /// ２つのクォータニオンの角度を返します（ラジアン）
         /// 不正なクォータニオンでは結果が不定になるので注意！例:(0,0,0,0)など
+        /// 返回两个四元数的角度（弧度）
+        /// 请注意，不正确的四元数会导致不确定的结果！例如：（0,0,0,0）等
         /// </summary>
         /// <param name="a"></param>
         /// <param name="b"></param>
@@ -1492,6 +1494,8 @@ namespace MagicaCloth2
         /// <summary>
         /// 座標をPivotのローカル姿勢を保ちながらシフトさせる 边保持Pivot的局部姿势边移动坐标
         /// 主に慣性シフト用 主要用于惯性偏移
+        /// 一边保持Pivot的局部姿势一边使坐标移动的边保持Pivot的局部姿势边移动坐标
+        /// 主要用于惯性偏移
         /// </summary>
         /// <param name="oldPos">移動前座標 移动前坐标</param>
         /// <param name="oldPivotPosition">移動前のシフト中心座標 移动前偏移中心坐标</param>

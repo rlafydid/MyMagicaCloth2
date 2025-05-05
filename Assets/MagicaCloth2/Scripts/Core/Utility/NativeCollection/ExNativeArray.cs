@@ -114,15 +114,18 @@ namespace MagicaCloth2
 
         /// <summary>
         /// 指定サイズの領域を追加しそのチャンクを返す
+        /// 添加指定大小的区域并返回块
         /// </summary>
         /// <param name="dataLength"></param>
         /// <returns></returns>
         public DataChunk AddRange(int dataLength)
         {
             // サイズ0対応
+            // 支持0大小
             if (dataLength == 0)
             {
                 // 領域だけは0で確保する
+                // 只确保区域为0
                 if (nativeArray.IsCreated == false)
                     nativeArray = new NativeArray<T>(0, Allocator.Persistent);
 
@@ -594,12 +597,14 @@ namespace MagicaCloth2
                 if (dataLength == c.dataLength)
                 {
                     // このチャンクをすべて利用する
+                    // 利用所有这些信息块
                     emptyChunks.RemoveAtSwapBack(i);
                     return c;
                 }
                 else if (dataLength < c.dataLength)
                 {
                     // このチャンクを一部利用する
+                    // 部分利用该区块
                     var chunk = new DataChunk();
                     chunk.startIndex = c.startIndex;
                     chunk.dataLength = dataLength;
@@ -611,6 +616,7 @@ namespace MagicaCloth2
             }
 
             // 利用できるチャンクはなし
+            // 没有可用的区块
             return new DataChunk();
         }
 

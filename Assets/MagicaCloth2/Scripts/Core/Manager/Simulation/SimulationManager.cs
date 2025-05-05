@@ -475,7 +475,8 @@ namespace MagicaCloth2
         /// <returns></returns>
         internal JobHandle PreSimulationUpdate(JobHandle jobHandle)
         {
-            // パーティクルのリセットおよび慣性の適用  重置粒子并应用惯性
+            // パーティクルのリセットおよび慣性の適用
+            // 重置粒子并应用惯性
             var job = new PreSimulationUpdateJob()
             {
                 teamDataArray = MagicaManager.Team.teamDataArray.GetNativeArray(),
@@ -659,6 +660,7 @@ namespace MagicaCloth2
         //=========================================================================================
         /// <summary>
         /// クロスシミュレーションの１ステップ実行
+        /// 交叉模拟的一步执行
         /// </summary>
         /// <param name="updateCount"></param>
         /// <param name="updateIndex"></param>
@@ -674,21 +676,24 @@ namespace MagicaCloth2
             var wm = MagicaManager.Wind;
 
             // シミュレーションステップカウンター
+            // 模拟步进计数器
             SimulationStepCount++;
 
             // ステップごとのチーム更新
+            // 每个步骤的团队更新
             jobHandle = tm.SimulationStepTeamUpdate(updateIndex, jobHandle);
 
             // 今回のステップで計算が必要な作業リストを作成する
+            // 在本次步骤中制作需要计算的作业列表
             var clearStepCounterJob = new ClearStepCounter()
             {
-                processingStepParticle = processingStepParticle.Counter, // ステップ実行パーティクル
-                processingStepTriangleBending = processingStepTriangleBending.Counter, // ステップ実行トライアングルベンド
-                processingStepEdgeCollision = processingStepEdgeCollision.Counter, // ステップ実行エッジコリジョン
-                processingStepCollider = processingStepCollider.Counter, // ステップ実行コライダーリスト
-                processingStepBaseLine = processingStepBaseLine.Counter, // ステップ実行ベースライン
+                processingStepParticle = processingStepParticle.Counter, // 步进粒子
+                processingStepTriangleBending = processingStepTriangleBending.Counter, // 步进执行三角折弯
+                processingStepEdgeCollision = processingStepEdgeCollision.Counter, // 步进执行边碰撞
+                processingStepCollider = processingStepCollider.Counter, // 步骤执行协作器列表
+                processingStepBaseLine = processingStepBaseLine.Counter, // 步进执行基线
                 //processingCounter5 = processingIntList5.Counter, // (reserve)
-                processingStepMotionParticle = processingStepMotionParticle.Counter, // ステップ実行モーション制約パーティクル
+                processingStepMotionParticle = processingStepMotionParticle.Counter, // 步长执行运动约束粒子
 
                 processingSelfParticle = processingSelfParticle.Counter,
                 processingSelfPointTriangle = processingSelfPointTriangle.Counter,
@@ -729,12 +734,15 @@ namespace MagicaCloth2
             jobHandle = createUpdateParticleJob.Schedule(tm.TeamCount, 1, jobHandle);
 
             // 今回のステップで計算が必要なコライダーリストを作成する
+            // 在此步骤中创建需要计算的协作者列表
             jobHandle = MagicaManager.Collider.CreateUpdateColliderList(updateIndex, jobHandle);
 
             // コライダーの更新
+            // 更新协作者
             jobHandle = MagicaManager.Collider.StartSimulationStep(jobHandle);
 
             // 速度更新、外力の影響、慣性シフト
+            // 速度更新、外力影响、惯性偏移
             var startStepJob = new StartSimulationStepJob()
             {
                 simulationPower = MagicaManager.Time.SimulationPower,
@@ -772,6 +780,7 @@ namespace MagicaCloth2
             jobHandle = startStepJob.Schedule(processingStepParticle.GetJobSchedulePtr(), 32, jobHandle);
 
             // 制約解決のためのステップごとの基準姿勢を計算（ベースラインから）
+            // 计算用于解决限制的每个步骤的基准姿势（从基线开始）
             var updateStepBasicPotureJob = new UpdateStepBasicPotureJob()
             {
                 stepBaseLineIndexArray = processingStepBaseLine.Buffer,
@@ -974,12 +983,14 @@ namespace MagicaCloth2
                     return;
 
                 // このステップでの更新があるか判定する
+                // 判定是否有该步骤中更新
                 if (tdata.IsStepRunning == false)
                     return;
 
                 var parameter = parameterArray[teamId];
 
                 // パーティクルリスト
+                // 粒子列表
                 int pcnt = tdata.particleChunk.dataLength;
                 int pstart = tdata.particleChunk.startIndex;
                 int start = stepParticleIndexCounter.MC2InterlockedStartIndex(pcnt);
@@ -989,6 +1000,7 @@ namespace MagicaCloth2
                 }
 
                 // ベースライン
+                // 基线
                 int bcnt = tdata.BaseLineCount;
                 int bstart = tdata.baseLineChunk.startIndex;
                 start = stepBaseLineIndexCounter.MC2InterlockedStartIndex(bcnt);
@@ -1000,6 +1012,7 @@ namespace MagicaCloth2
                 }
 
                 // トライアングルベンド
+                // 三角弯头
                 if (parameter.triangleBendingConstraint.method != TriangleBendingConstraint.Method.None)
                 {
                     int bendCnt = tdata.bendingPairChunk.dataLength;
@@ -1013,6 +1026,7 @@ namespace MagicaCloth2
                 }
 
                 // エッジコライダーコリジョン
+                // 边缘胶合器碰撞
                 int colliderCount = tdata.ColliderCount;
                 if (parameter.colliderCollisionConstraint.mode == ColliderCollisionConstraint.Mode.Edge && tdata.proxyEdgeChunk.IsValid && colliderCount > 0)
                 {
@@ -1026,6 +1040,7 @@ namespace MagicaCloth2
                 }
 
                 // モーション制約パーティクル
+                // 运动约束粒子
                 if (parameter.motionConstraint.useMaxDistance || parameter.motionConstraint.useBackstop)
                 {
                     start = motionParticleIndexCounter.MC2InterlockedStartIndex(pcnt);
@@ -1036,6 +1051,7 @@ namespace MagicaCloth2
                 }
 
                 // セルフコリジョン
+                // 自碰撞
                 bool useSelfEdgeEdge = tdata.flag.TestAny(TeamManager.Flag_Self_EdgeEdge, 3);
                 bool useSelfPointTriangle = tdata.flag.TestAny(TeamManager.Flag_Self_PointTriangle, 3);
                 bool useSelfTrianglePoint = tdata.flag.TestAny(TeamManager.Flag_Self_TrianglePoint, 3);
@@ -1154,7 +1170,7 @@ namespace MagicaCloth2
             public NativeArray<quaternion> stepBasicRotationArray;
 
 
-            // ステップパーティクルごと
+            // ステップパーティクルごと 每步粒子
             public void Execute(int index)
             {
                 int pindex = stepParticleIndexArray[index];
@@ -1162,10 +1178,11 @@ namespace MagicaCloth2
                 var tdata = teamDataArray[teamId];
                 int l_index = pindex - tdata.particleChunk.startIndex;
 
-                // 各カテゴリのデータインデックス
+                // 各カテゴリのデータインデックスjmn
+                // 每个类别的数据索引
                 int vindex = tdata.proxyCommonChunk.startIndex + l_index;
 
-                // パラメータ
+                // パラメータ 参数
                 var param = parameterArray[teamId];
 
                 // nextPosSwap
@@ -1177,23 +1194,25 @@ namespace MagicaCloth2
                 var velocityPos = oldPos;
 
                 // 基準姿勢のステップ補間
+                // 基准姿势步进插补
                 var oldPosition = oldPositionArray[pindex];
                 var oldRotation = oldRotationArray[pindex];
                 var position = positions[vindex];
                 var rotation = rotations[vindex];
 
                 // ベース位置補間
+                // 基极位置插补
                 float3 basePos = math.lerp(oldPosition, position, tdata.frameInterpolation);
                 quaternion baseRot = math.slerp(oldRotation, rotation, tdata.frameInterpolation);
                 baseRot = math.normalize(baseRot); // 必要
                 basePosArray[pindex] = basePos;
                 baseRotArray[pindex] = baseRot;
 
-                // ステップ基本位置
+                // 步骤基本位置
                 stepBasicPositionArray[pindex] = basePos;
                 stepBasicRotationArray[pindex] = baseRot;
 
-                // 移動パーティクル
+                // 移动粒子
                 if (attr.IsMove() || tdata.IsSpring)
                 {
                     var cdata = centerDataArray[teamId];
@@ -1207,10 +1226,13 @@ namespace MagicaCloth2
 #if true
                     // ■ローカル慣性シフト
                     // シフト量
+                    // ■局部惯性偏移
+                    // 移位量
                     float3 inertiaVector = cdata.inertiaVector;
                     quaternion inertiaRotation = cdata.inertiaRotation;
 
                     // 慣性の深さ影響
+                    // 惯性深度影响
                     float inertiaDepth = param.inertiaConstraint.depthInertia * (1.0f - depth * depth); // 二次曲線
                     //Debug.Log($"[{pindex}] inertiaDepth:{inertiaDepth}");
                     inertiaVector = math.lerp(inertiaVector, cdata.stepVector, inertiaDepth);
@@ -1219,6 +1241,7 @@ namespace MagicaCloth2
                     //Debug.Log($"[{pindex}] depthInertia:{inertiaDepth} stepVector {cdata.stepVector} inertiaVector:{inertiaVector} inertiaDepth:{inertiaDepth}");
 
                     // たぶんこっちが正しい
+                    // 也许这是对的
                     float3 lpos = oldPos - cdata.oldWorldPosition;
                     lpos = math.mul(inertiaRotation, lpos);
                     lpos += inertiaVector;
@@ -1232,6 +1255,7 @@ namespace MagicaCloth2
                     velocityPos += inertiaOffset;
 
                     // 速度に慣性回転を加える
+                    // 速度加上惯性旋转
                     velocity = math.mul(inertiaRotation, velocity);
 #endif
 
@@ -1240,6 +1264,7 @@ namespace MagicaCloth2
 
                     // 抵抗
                     // 重力に影響させたくないので先に計算する（※通常はforce適用後に行うのが一般的）
+                    // 因为不想影响重力所以先计算（※通常force一般在适用后进行
                     float damping = param.dampingCurveData.MC2EvaluateCurveClamp01(depth);
                     velocity *= math.saturate(1.0f - damping * simulationPower.z);
 
@@ -1301,6 +1326,7 @@ namespace MagicaCloth2
                 }
 
                 // 速度計算用の移動前の位置
+                // 用于速度计算的移动前的位置
                 velocityPosArray[pindex] = velocityPos;
 
                 // 予測位置格納

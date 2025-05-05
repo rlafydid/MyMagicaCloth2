@@ -761,7 +761,8 @@ namespace MagicaCloth2
 
             public void Execute(int teamId)
             {
-                // [0]はグローバルチームなのでスキップ 因为是全球团队所以跳过
+                // [0]はグローバルチームなのでスキップ
+                // 因为是全球团队所以跳过
                 if (teamId == 0)
                     return;
 
@@ -1627,6 +1628,7 @@ namespace MagicaCloth2
         //=========================================================================================
         /// <summary>
         /// マッピングメッシュの頂点姿勢を連動するプロキシメッシュから頂点スキニングして求める
+        /// 通过联动映射网格顶点姿势的代理网格进行顶点蒙皮来求出
         /// </summary>
         /// <param name="jobHandle"></param>
         /// <returns></returns>
@@ -1639,6 +1641,7 @@ namespace MagicaCloth2
             var bm = MagicaManager.Bone;
 
             // マッピングメッシュとプロキシメッシュの座標変換マトリックスを求める
+            // 求映射网格和代理网格的坐标变换矩阵
             var calcMeshConvertJob = new CalcMeshConvertMatrixJob()
             {
                 mappingDataArray = tm.mappingDataArray.GetNativeArray(),
@@ -1655,6 +1658,9 @@ namespace MagicaCloth2
             // プロキシスキニングの実行
             // （マッピングメッシュのローカル座標空間）
             // todo:カリングを考えてバッファにすべきかも
+            // 执行代理蒙皮
+            //（映射网格的局部坐标空间）
+            //todo:也许应该考虑一下标记并将其作为缓冲区
             var calcProxySkinningJob = new CalcProxySkinningJob()
             {
                 teamDataArray = tm.teamDataArray.GetNativeArray(),

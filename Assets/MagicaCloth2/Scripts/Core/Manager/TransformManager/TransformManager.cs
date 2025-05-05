@@ -567,6 +567,7 @@ namespace MagicaCloth2
         //=========================================================================================
         /// <summary>
         /// トランスフォームを読み込むジョブを発行する
+        /// 提交要导入变换的作业
         /// </summary>
         /// <param name="jobHandle"></param>
         /// <returns></returns>
@@ -575,6 +576,7 @@ namespace MagicaCloth2
             if (Count > 0)
             {
                 // todo:未来予測などがあると色々複雑化するところ
+                // todo:如果有未来预测的话，会有很多复杂化的地方
 
                 var job = new ReadTransformJob()
                 {

@@ -12,7 +12,9 @@ namespace MagicaCloth2
     {
         /// <summary>
         /// カウンターにデータ数を追加してその追加前の開始インデックスを返す
-        /// この関数はスレッドセーフである
+        /// この関数はスレッドセーフである......
+        /// 向计数器添加数据数并返回其追加前的开始索引
+        /// 这个函数是线程安全的。.....
         /// </summary>
         /// <param name="counter"></param>
         /// <param name="dataCount"></param>

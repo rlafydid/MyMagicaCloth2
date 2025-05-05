@@ -893,6 +893,8 @@ namespace MagicaCloth2
         /// <summary>
         /// シミュレーションステップ前処理
         /// コライダーの更新および作業データ作成
+        /// 模拟步骤预处理
+        /// 协作器更新和工作数据创建
         /// </summary>
         /// <param name="jobHandle"></param>
         /// <returns></returns>
@@ -975,6 +977,7 @@ namespace MagicaCloth2
             public void Execute(int index)
             {
                 // ここでのコライダーは有効であることが保証されている
+                // 这里的协作者被保证是有效的
                 int cindex = jobColliderIndexList[index];
                 var flag = flagArray[cindex];
                 if (flag.IsSet(Flag_Valid) == false || flag.IsSet(Flag_Enable) == false)
@@ -983,6 +986,7 @@ namespace MagicaCloth2
                 var tdata = teamDataArray[teamId];
 
                 // 今回のシミュレーションステップでの姿勢を求める
+                // 求这次模拟步骤中的姿势
                 float3 pos = math.lerp(oldFramePositions[cindex], framePositions[cindex], tdata.frameInterpolation);
                 quaternion rot = math.slerp(oldFrameRotations[cindex], frameRotations[cindex], tdata.frameInterpolation);
                 rot = math.normalize(rot); // 必要
@@ -992,10 +996,13 @@ namespace MagicaCloth2
 
                 // コライダー慣性シフト
                 // old姿勢をシフトさせる
+                // 协作器惯性偏移
+                // 改变old姿势
                 var oldpos = oldPositions[cindex];
                 var oldrot = oldRotations[cindex];
 
                 // ローカル慣性シフト
+                // 局部惯性位移
                 var cdata = centerDataArray[teamId];
                 oldpos = math.lerp(oldpos, pos, cdata.stepMoveInertiaRatio);
                 oldrot = math.slerp(oldrot, rot, cdata.stepRotationInertiaRatio);
@@ -1003,6 +1010,7 @@ namespace MagicaCloth2
                 oldRotations[cindex] = math.normalize(oldrot);
 
                 // ステップ作業データの構築
+                // 步骤作业数据的构筑
                 var type = DataUtility.GetColliderType(flag);
                 var work = new WorkData();
                 var csize = sizeArray[cindex];
@@ -1039,8 +1047,8 @@ namespace MagicaCloth2
                     // スケール
                     //float scl = math.dot(math.abs(cscl), dir); // dirの軸のスケールを使用する
 
-                    // マイナススケール
-                    float scl0 = math.dot(cscl, dir); // dirの軸のスケールを使用する
+                    // 负数
+                    float scl0 = math.dot(cscl, dir); // dir缩放轴
                     dir *= math.sign(scl0); // 方向反転
                     float scl = math.abs(scl0);
 
@@ -1049,8 +1057,8 @@ namespace MagicaCloth2
                     // z = 長さ
                     csize *= scl;
 
-                    float sr = csize.x;
-                    float er = csize.y;
+                    float sr = csize.x; // 起始半径
+                    float er = csize.y; // 终点半径
                     float length = csize.z;
 
                     // 長さ

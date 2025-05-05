@@ -29,12 +29,16 @@ namespace MagicaCloth2
             /// <summary>
             /// ２面角による曲げ制御
             /// ２面は初期の角度を保つように移動する。ただし角度のみなので±の近い方に曲る。
+            /// 基于2面角的弯曲控制
+            /// 两个面移动以保持初始角度。但是因为只是角度，所以向±附近的方向弯曲。
             /// </summary>
             DihedralAngle = 1,
 
             /// <summary>
             /// 方向性ありの２面角曲げ制約
             /// 初期姿勢を保つように復元する
+            /// 定向双面角弯曲约束
+            /// 恢复到保持初始姿势
             /// </summary>
             DirectionDihedralAngle = 2,
         }
@@ -522,6 +526,7 @@ namespace MagicaCloth2
                 jobHandle = triangleBendingJob.Schedule(sm.processingStepTriangleBending.GetJobSchedulePtr(), 16, jobHandle);
 
                 // 集計（速度影響はなし）
+                // 合计（无速度影响）
                 var aggregateJob = new SolveAggregateBufferJob()
                 {
                     stepParticleIndexArray = sm.processingStepParticle.Buffer,
@@ -609,6 +614,7 @@ namespace MagicaCloth2
                 int v_start = tdata.proxyCommonChunk.startIndex;
 
                 // トライアングルペア
+                // 三角对
                 var pairData = trianglePairArray[pairIndex];
                 int4 vertices = DataUtility.Unpack64(pairData);
                 //Debug.Log(vertices);
@@ -630,19 +636,22 @@ namespace MagicaCloth2
                 }
 
                 // データ
+                // 数据
                 int l_index = pairIndex - tdata.bendingPairChunk.startIndex;
                 int dataIndex = tdata.bendingPairChunk.startIndex + l_index;
                 float restAngle = restAngleOrVolumeArray[dataIndex];
                 sbyte signOrVolume = signOrVolumeArray[dataIndex];
 
                 // メソッドごとの解決
+                // 按方法解析
                 bool result = false;
                 if (signOrVolume == VOLUME_SIGN)
                 {
                     // Volume
-                    float volumeRest = restAngle * tdata.scaleRatio; // スケール倍率
+                    float volumeRest = restAngle * tdata.scaleRatio; // スケール倍率 缩放比例
 
                     // マイナススケール
+                    // 负数
                     volumeRest *= tdata.negativeScaleSign;
 
                     result = Volume(nextPosBuffer, invMassBuffer, volumeRest, stiffness, ref addPosBuffer);
@@ -653,15 +662,17 @@ namespace MagicaCloth2
                     if (parameter.method == Method.DihedralAngle)
                     {
                         // 方向性なし二面角
+                        // 无方向性二面角
                         result = DihedralAngle(0, nextPosBuffer, invMassBuffer, restAngle, stiffness, ref addPosBuffer);
                     }
                     else if (parameter.method == Method.DirectionDihedralAngle)
                     {
                         // 方向性あり二面角
+                        // 有方向性的二面角
                         float sign = signOrVolume < 0 ? -1 : 1;
                         restAngle *= sign;
 
-                        // マイナススケール
+                        // 负数
                         restAngle *= tdata.negativeScaleSign;
 
                         result = DihedralAngle(sign, nextPosBuffer, invMassBuffer, restAngle, stiffness, ref addPosBuffer);
@@ -669,6 +680,7 @@ namespace MagicaCloth2
                 }
 
                 // 集計バッファへ格納
+                // 存储到合并缓冲区
                 if (result)
                 {
                     int4 writeData = DataUtility.Unpack32(writeDataArray[dataIndex]);
@@ -726,6 +738,7 @@ namespace MagicaCloth2
 
             /// <summary>
             /// トライアングルベンド計算
+            /// 三角折弯计算
             /// </summary>
             /// <param name="sign">方向性ありなら0以外</param>
             /// <param name="nextPosBuffer"></param>
@@ -843,9 +856,11 @@ namespace MagicaCloth2
             public NativeArray<float3> writeBuffer;
 
             // ステップパーティクルごと
+            // 每步粒子
             public void Execute(int index)
             {
                 // pindexのチームは有効であることが保証されている
+                // pindex的团队保证有效
                 int pindex = stepParticleIndexArray[index];
                 int teamId = teamIdArray[pindex];
                 var tdata = teamDataArray[teamId];
@@ -855,11 +870,13 @@ namespace MagicaCloth2
                 int l_index = pindex - tdata.particleChunk.startIndex;
 
                 // 固定なら無効
+                // 固定则无效
                 int vindex = tdata.proxyCommonChunk.startIndex + l_index;
                 if (attributes[vindex].IsDontMove())
                     return;
 
                 // 書き込みバッファの値を平均化してnextPosに加算する
+                // 将写入缓冲区的值平均化nextPos加在一起
                 uint pack = writeIndexArray[tdata.bendingWriteIndexChunk.startIndex + l_index];
                 int cnt = DataUtility.Unpack12_20Hi(pack);
                 int start = DataUtility.Unpack12_20Low(pack);
