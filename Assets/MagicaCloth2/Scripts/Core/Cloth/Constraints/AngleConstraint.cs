@@ -426,6 +426,9 @@ namespace MagicaCloth2
                 // 反復
                 // 角度制限は親と子の位置を徐々に修正していくため反復は必須。
                 // 反復は多いほど堅牢性が増す。
+                //重复
+                //角度限制会逐渐修正父代和子代的位置，所以必须反复。
+                //重复越多，坚固性越强。
                 for (int k = 0; k < Define.System.AngleLimitIteration; k++)
                 {
                     float iterationRatio = (float)k / (Define.System.AngleLimitIteration - 1); // 0.0 ~ 1.0
@@ -435,6 +438,11 @@ namespace MagicaCloth2
                     // 中心点がちょうど真ん中(0.5)の場合は堅牢性が最大となり振動が発生しなくなるがそのかわり角度復元/制限の効果が弱くなる。
                     // そのため反復ごとに回転中心を徐々に親(0.0)から中間(0.5)に近づけることにより堅牢性と安定性を確保する
                     // この処理により振動が完全に無くなる訳では無いが許容範囲であるし何よりも角度復元/制限の効果が大幅に向上する
+                    //旋转的中心点。
+                    //越接近父母（值越小），角度限制的效果越大，但也成为剧烈振动的温床。
+                    //中心点正好在正中间（0.5）的情况下，坚固性最大，不产生振动，但是角度复原/限制的效果变弱。
+                    //因此，在每次迭代中，通过使旋转中心逐渐从父（0.0）接近中间（0.5）来确保牢固性和稳定性
+                    //通过该处理，振动并不是完全消失，但在容许范围内，角度复原/限制的效果比什么都大幅度提高
                     //float limitRotRatio = math.min(math.lerp(0.3f, 0.7f, iterationRatio), 0.5f);
                     //float limitRotRatio = math.min(math.lerp(0.4f, 0.7f, iterationRatio), 0.5f);
                     float limitRotRatio = 0.4f;

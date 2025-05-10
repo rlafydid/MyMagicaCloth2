@@ -9,6 +9,8 @@ namespace MagicaCloth2
     /// <summary>
     /// VirtualMeshで利用される頂点のボーンウエイト
     /// これはUnity.BoneWeight構造体を再マッピングしたもの
+    /// 虚拟网格使用的顶点骨骼权重
+    /// 这是Unity。重新映射BoneWeight结构
     /// </summary>
     public struct VirtualMeshBoneWeight
     {

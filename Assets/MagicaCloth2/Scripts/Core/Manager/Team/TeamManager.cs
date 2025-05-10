@@ -143,6 +143,8 @@ namespace MagicaCloth2
             /// <summary>
             /// ステップごとのフレームに対するnowUpdateTime割合
             /// これは(frameStartTime ~ time)間でのnowUpdateTimeの割合
+            /// 对于每个步骤的帧nowUpdateTime百分比
+            /// 这是（frameStartTime~time）之间的nowUpdateTime百分比
             /// </summary>
             public float frameInterpolation;
 

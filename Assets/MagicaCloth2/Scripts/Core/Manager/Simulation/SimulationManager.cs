@@ -569,6 +569,7 @@ namespace MagicaCloth2
                 int l_index = pindex - tdata.particleChunk.startIndex;
                 int vindex = tdata.proxyCommonChunk.startIndex + l_index;
 
+
                 if (tdata.IsReset)
                 {
                     // リセット
@@ -603,6 +604,9 @@ namespace MagicaCloth2
                     var velocity = velocityArray[pindex];
                     var realVelocity = realVelocityArray[pindex];
 
+                    // TODO 用来测试效果
+                    // Debug.Log("OldPos: " + oldPos + " CurrentPos: " + positions[vindex] + "CurrentPos2: " + positions[pindex]);
+
                     // ■マイナススケール 负数
                     if (tdata.IsNegativeScaleTeleport)
                     {
@@ -628,6 +632,7 @@ namespace MagicaCloth2
                     }
 
                     // ■慣性全体シフト
+                    // 惯性整体位移
                     if (tdata.IsInertiaShift)
                     {
                         // cdata.frameComponentShiftVector : 全体シフトベクトル
@@ -742,7 +747,7 @@ namespace MagicaCloth2
             jobHandle = MagicaManager.Collider.StartSimulationStep(jobHandle);
 
             // 速度更新、外力の影響、慣性シフト
-            // 速度更新、外力影响、惯性偏移
+            // 速度更新、外力影响、惯性偏移   *****  把nextPos最终解算位置 赋值到
             var startStepJob = new StartSimulationStepJob()
             {
                 simulationPower = MagicaManager.Time.SimulationPower,
@@ -823,7 +828,7 @@ namespace MagicaCloth2
                 jobHandle = selfCollisionConstraint.SolverConstraint(updateIndex, jobHandle);
             }
 
-            // 座標確定
+            // 座標確定 nextPos会赋值给oldPosArray
             var endStepJob = new EndSimulationStepJob()
             {
                 simulationDeltaTime = MagicaManager.Time.SimulationDeltaTime,
@@ -839,7 +844,7 @@ namespace MagicaCloth2
 
                 teamIdArray = teamIdArray.GetNativeArray(),
                 nextPosArray = nextPosArray.GetNativeArray(),
-                oldPosArray = oldPosArray.GetNativeArray(),
+                oldPosArray = oldPosArray.GetNativeArray(), //最终的赋值
                 velocityArray = velocityArray.GetNativeArray(),
                 realVelocityArray = realVelocityArray.GetNativeArray(),
                 velocityPosArray = velocityPosArray.GetNativeArray(),
@@ -1815,7 +1820,7 @@ namespace MagicaCloth2
                             //float m = 1.0f + depth * 3.0f;
                             //const float m = 1;
 
-                            // 遠心力
+                            // 遠心力 离心力
                             var f = m * w * w * r;
 
                             // 回転方向uと速度方向が同じ場合のみ力を加える（内積による乗算）
@@ -1825,15 +1830,15 @@ namespace MagicaCloth2
                             float3 u = math.normalize(math.cross(cdata.rotationAxis, n));
                             f *= math.saturate(math.dot(normalVelocity, u));
 
-                            // 遠心力を速度に加算する
+                            // 遠心力を速度に加算する 把离心力加到速度上
                             velocity += n * (f * param.inertiaConstraint.centrifualAcceleration * 0.02f);
                         }
                     }
 #endif
-                    // 安定化用の速度割合
+                    // 安定化用の速度割合 稳定化用速度比例
                     velocity *= tdata.velocityWeight;
 
-                    // 書き戻し
+                    // 書き戻し 重写
                     velocityArray[pindex] = velocity;
                 }
 
@@ -1843,6 +1848,7 @@ namespace MagicaCloth2
                 //Debug.Log($"[{pindex}] realVelocity:{realVelocity}");
 
                 // 今回の予測位置を記録
+                // 记录这次的预测位置
                 oldPosArray[pindex] = nextPos;
             }
         }
@@ -1851,6 +1857,8 @@ namespace MagicaCloth2
         /// <summary>
         /// シミュレーション完了後の表示位置の計算
         /// - 未来予測
+        /// 模拟完成后的显示位置的计算
+        /// 未来预测
         /// </summary>
         /// <param name="jobHandle"></param>
         /// <returns></returns>
@@ -1858,6 +1866,8 @@ namespace MagicaCloth2
         {
             // ここではproxyMeshのpositionsのみを更新する
             // rotationsは自動で計算されるため
+            // 在此proxyMesh的，之positions仅更新
+            // rotations是自动计算的
             var job = new CalcDisplayPositionJob()
             {
                 simulationDeltaTime = MagicaManager.Time.SimulationDeltaTime,
@@ -1941,10 +1951,13 @@ namespace MagicaCloth2
 #if !MC2_DISABLE_FUTURE
                     // 未来予測
                     // 最終計算位置と実速度から次のステップ位置を予測し、その間のフレーム時間位置を表示位置とする
+                    // 未来预测
+                    // 根据最终计算位置和实际速度预测下一步位置，将其间帧时间位置作为显示位置
                     float3 velocity = realVelocityArray[pindex] * simulationDeltaTime;
                     float3 fpos = dpos + velocity;
                     float interval = (tdata.nowUpdateTime + simulationDeltaTime) - tdata.oldTime;
                     float t = interval > 0.0f ? (tdata.time - tdata.oldTime) / interval : 0.0f;
+                    Debug.Log("lerp t " + t);
                     fpos = math.lerp(dispPosArray[pindex], fpos, t);
                     dpos = fpos;
 #endif
@@ -1970,6 +1983,7 @@ namespace MagicaCloth2
                 }
 
                 // １つ前の原点位置を記録
+                // 记录前一个原点位置
                 if (tdata.IsRunning)
                 {
                     oldPositionArray[pindex] = pos;

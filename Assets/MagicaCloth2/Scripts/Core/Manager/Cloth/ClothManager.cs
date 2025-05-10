@@ -227,7 +227,7 @@ namespace MagicaCloth2
             masterJob = bm.ReadTransform(masterJob);
 
             // ■プロキシメッシュをスキニングし基本姿勢を求める
-            // 蒙皮代理网格求基本姿势
+            // 蒙皮代理网格求基本姿势  从TransformManager/bm 获取 localToWorldMatrixArray赋值给position和rotation
             masterJob = vm.PreProxyMeshUpdate(masterJob);
 
             //-----------------------------------------------------------------
@@ -252,7 +252,7 @@ namespace MagicaCloth2
             }
 
             //-----------------------------------------------------------------
-            // 表示位置の決定 确定显示位置
+            // 表示位置の決定 确定显示位置   *******  在这里把计算好的pos写入进去了
             masterJob = sm.CalcDisplayPosition(masterJob);
 
             //-----------------------------------------------------------------
@@ -260,7 +260,7 @@ namespace MagicaCloth2
             // プロキシメッシュの頂点から法線接線を求め姿勢を確定させる 从代理网格的顶点求出法线切线并确定姿势
             // ラインがある場合はベースラインごとに姿勢を整える 有线条时，按基线调整姿势
             // BoneClothの場合は頂点姿勢を連動するトランスフォームデータにコピーする  BoneCloth时，将顶点姿势复制到联动的变换数据中
-            masterJob = vm.PostProxyMeshUpdate(masterJob);
+            masterJob = vm.PostProxyMeshUpdate(masterJob); //在这里写入
 
             // マッピングメッシュ 映射网格
             int mappingCount = tm.MappingCount;

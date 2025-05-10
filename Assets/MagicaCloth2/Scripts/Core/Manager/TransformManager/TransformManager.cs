@@ -54,6 +54,7 @@ namespace MagicaCloth2
 
         /// <summary>
         /// ローカル座標
+        /// 局部坐标
         /// </summary>
         internal ExNativeArray<float3> localPositionArray;
 
@@ -650,6 +651,8 @@ namespace MagicaCloth2
 
                 positionArray[index] = pos;
                 rotationArray[index] = rot;
+
+                // TODO 感觉没什么用
                 localPositionArray[index] = transform.localPosition;
                 localRotationArray[index] = transform.localRotation;
 
