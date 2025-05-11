@@ -821,6 +821,8 @@ namespace MagicaCloth2
                 jobHandle = colliderCollisionConstraint.SolverConstraint(jobHandle);
                 // コライダー衝突後はパーティクルが乱れる可能性があるためもう一度距離制約で整える。
                 // これは裏返り防止などに効果大。
+                // 由于协作器碰撞后粒子可能会混乱，所以再次通过距离限制调整。
+                // 这对防止翻身等效果很好。
                 jobHandle = distanceConstraint.SolverConstraint(jobHandle);
                 // モーション制約はコライダーより優先
                 jobHandle = motionConstraint.SolverConstraint(jobHandle);
@@ -1645,6 +1647,7 @@ namespace MagicaCloth2
 
         /// <summary>
         /// ステップ終了後の座標確定処理
+        /// 步骤结束后坐标确定处理
         /// </summary>
         [BurstCompile]
         struct EndSimulationStepJob : IJobParallelForDefer
@@ -1691,9 +1694,11 @@ namespace MagicaCloth2
             public NativeArray<float3> collisionNormalArray;
 
             // ステップ有効パーティクルごと
+            // 每有效步长粒子
             public void Execute(int index)
             {
                 // パーティクルは有効であることが保証されている
+                // 确保粒子有效
                 int pindex = stepParticleIndexArray[index];
                 int teamId = teamIdArray[pindex];
                 var tdata = teamDataArray[teamId];
@@ -1704,6 +1709,7 @@ namespace MagicaCloth2
                 int l_index = pindex - pstart;
 
                 // 各カテゴリのデータインデックス
+                // 每个类别的数据索引
                 int vindex = tdata.proxyCommonChunk.startIndex + l_index;
 
                 var attr = attributes[vindex];
@@ -1713,7 +1719,7 @@ namespace MagicaCloth2
 
                 if (attr.IsMove() || tdata.IsSpring)
                 {
-                    // 移動パーティクル
+                    // 移動パーティクル 移动粒子
                     var velocityOldPos = velocityPosArray[pindex];
 
 #if true
@@ -1731,9 +1737,10 @@ namespace MagicaCloth2
                     if (isCollision && friction > 0.0f && staticFrictionParam > 0.0f)
                     {
                         // 接線方向の移動速度から計算する
+                        // 根据切线方向的移动速度计算
                         var v = nextPos - oldPos;
-                        var tanv = v - MathUtility.Project(v, cn); // 接線方向の移動ベクトル
-                        float tangentVelocity = math.length(tanv) / simulationDeltaTime; // 接線方向の移動速度
+                        var tanv = v - MathUtility.Project(v, cn); // 接線方向の移動ベクトル 切线方向移动矢量
+                        float tangentVelocity = math.length(tanv) / simulationDeltaTime; // 接線方向の移動速度 切线方向移动速度
 
                         // 静止速度以下ならば係数を上げる
                         if (tangentVelocity < staticFrictionParam)
@@ -1748,7 +1755,7 @@ namespace MagicaCloth2
                             staticFriction = math.saturate(staticFriction - value);
                         }
 
-                        // 接線方向に位置を巻き戻す
+                        // 接線方向に位置を巻き戻す 沿切线方向回绕位置
                         tanv *= staticFriction;
                         nextPos -= tanv;
                         velocityOldPos -= tanv;
@@ -1770,6 +1777,8 @@ namespace MagicaCloth2
 #if true
                     // ■動摩擦
                     // 衝突面との角度が大きいほど減衰が強くなる(MC1)
+                    // ■动摩擦
+                    // 与碰撞面的角度越大衰减越强（MC1）
                     if (friction > Define.System.Epsilon && isCollision && dynamicFrictionParam > 0.0f && sqVel >= Define.System.Epsilon)
                     {
                         //float dot = math.dot(cn, math.normalize(velocity));
@@ -1790,6 +1799,10 @@ namespace MagicaCloth2
                     // 最大速度はある程度制限したほうが動きが良くなるので入れるべき。
                     // 特に回転時の髪などの動きが柔らかくなる。
                     // しかし制限しすぎるとコライダーの押し出し制度がさがるので注意。
+                    //最大速度
+//最大速度在一定程度上限制的话动作会变好，所以应该放进去。
+//特别是旋转时头发等的动作变软。
+//但是过于限制的话，会降低合作组织的挤出制度，所以要注意。
                     if (param.inertiaConstraint.particleSpeedLimit >= 0.0f)
                     {
                         velocity = MathUtility.ClampVector(velocity, param.inertiaConstraint.particleSpeedLimit * tdata.scaleRatio);
@@ -1797,12 +1810,15 @@ namespace MagicaCloth2
 #endif
 #if true
                     // ■遠心力加速 ---------------------------------------------
+                    // 离心力加速
                     if (cdata.angularVelocity > Define.System.Epsilon && param.inertiaConstraint.centrifualAcceleration > Define.System.Epsilon && sqVel >= Define.System.Epsilon)
                     {
                         // 回転中心のローカル座標
+                        // 旋转中心局部坐标
                         var lpos = nextPos - cdata.nowWorldPosition;
 
                         // 回転軸平面に投影
+                        // 投影到旋转轴平面
                         var v = MathUtility.ProjectOnPlane(lpos, cdata.rotationAxis);
                         var r = math.length(v);
                         if (r > Define.System.Epsilon)
@@ -1814,6 +1830,8 @@ namespace MagicaCloth2
 
                             // 重量（重いほど遠心力は強くなる）
                             // ここでは末端に行くほど軽くする
+                            // 重量（越重离心力越强）
+                            // 此处越往末端越轻
                             //float m = (1.0f - depth) * 3.0f;
                             //float m = 1.0f + (1.0f - depth) * 2.0f;
                             float m = 1.0f + (1.0f - depth); // fix
@@ -1827,6 +1845,10 @@ namespace MagicaCloth2
                             // 実際の物理では遠心力は紐が張った状態でなければ発生しないがこの状態を判別する方法は簡単ではない
                             // そのためこのような近似で代用する
                             // 回転と速度が逆方向の場合は紐が緩んでいると判断し遠心力の増強を適用しない
+                            // 旋转方向u仅在速度方向相同的情况下施加力（内积乘法）
+                            // 在实际物理中，离心力如果不是拉紧绳子的状态就不会发生，但是判别该状态的方法并不简单
+                            // 因此用这样的近似代替
+                            // 旋转和速度为反方向时，判断为绳子松动，不适用离心力的增强
                             float3 u = math.normalize(math.cross(cdata.rotationAxis, n));
                             f *= math.saturate(math.dot(normalVelocity, u));
 
@@ -1842,7 +1864,7 @@ namespace MagicaCloth2
                     velocityArray[pindex] = velocity;
                 }
 
-                // 実速度
+                // 実速度 实际速度
                 float3 realVelocity = (nextPos - oldPos) / simulationDeltaTime;
                 realVelocityArray[pindex] = realVelocity;
                 //Debug.Log($"[{pindex}] realVelocity:{realVelocity}");
