@@ -388,7 +388,7 @@ namespace MagicaCloth2
             public float3 frameMovingDirection;
 
             /// <summary>
-            /// 現フレームの姿勢 当前帧姿势
+            /// 現フレームの姿勢 当前帧姿势（是固定点center数据）
             /// </summary>
             public float3 frameWorldPosition;
             public quaternion frameWorldRotation;
